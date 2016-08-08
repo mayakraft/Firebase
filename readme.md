@@ -5,4 +5,4 @@
 
 # Login
 
-Create a personal account, login to your profile screen, edit your profile details, upload picture. Everyone has a profile, that's it. Foundation for a lot of apps.
+Create a personal account / login screen, logs you into your profile page where you can edit your profile details, upload picture. Everyone has a profile, that's it. Foundation for a lot of apps.

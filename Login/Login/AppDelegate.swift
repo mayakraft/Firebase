@@ -35,6 +35,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		// Override point for customization after application launch.
 		
 		FIRApp.configure()
+		
+		FireUser.sharedInstance
 
 		if (FIRAuth.auth()?.currentUser) != nil {
 			// User is signed in.
