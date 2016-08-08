@@ -5,4 +5,4 @@
 
 # Login
 
-Screen to create a personal account / login, logs you into your profile page where you can edit your profile details, upload picture. Everyone has a profile, that's it. Foundation for a lot of apps.
+Login portal to create a personal account / login, logs you into your profile page where you can edit your profile details, upload picture. Everyone has a profile, that's it. Foundation for a lot of apps.

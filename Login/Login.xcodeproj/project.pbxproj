@@ -86,8 +86,8 @@
 			children = (
 				D5E0DB0A1D56619F00BEA4D1 /* FireUser.swift */,
 				D59D30321D5523E30051C481 /* AppDelegate.swift */,
-				D5C98EF91D58DB39006EF7A3 /* MasterNavigationController.swift */,
 				D59D30341D5523E30051C481 /* LoginViewController.swift */,
+				D5C98EF91D58DB39006EF7A3 /* MasterNavigationController.swift */,
 				D5E0DB081D555BEA00BEA4D1 /* ProfileViewController.swift */,
 				D59D30391D5523E30051C481 /* Assets.xcassets */,
 				D59D303B1D5523E30051C481 /* LaunchScreen.storyboard */,

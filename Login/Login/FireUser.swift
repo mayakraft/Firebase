@@ -6,29 +6,31 @@
 //  Copyright © 2016 Robby. All rights reserved.
 //
 
+
+// Firebase comes with FireAuth with a "user" class, but you can't edit it.
+// this singleton is for making and managing a separate "users" class
+//
+//  - each user is stored under their user.uid
+//  - can add as many fields as you want (nickname, photo, etc..)
+//
+
 import Firebase
 
-//private let sharedInstance = FireUser()
+//private let shared = FireUser()
 class FireUser {
-	static let sharedInstance = FireUser()
+	static let shared = FireUser()
 	
 	private init() {
-		print("++++++ SINGLETON INIT ++++++++++")
 		FIRAuth.auth()?.addAuthStateDidChangeListener { auth, user in
 			if user != nil {
-				// User is signed in.
-				print("   AUTH LISTENER: user \(user?.email)")
-				
+				print("   AUTH LISTENER: user \(user?.email) signed in")
 				self.checkIfUserExists(user!, completionHandler: { (exists) in
-					if(exists){
-						
-					}
+					if(exists){ }
 					else{
-						self.copyUserIntoDatabase(user!)
+						self.createUserInDatabase(user!)
 					}
 				})
 			} else {
-				// No user is signed in.
 				print("   AUTH LISTENER: no user")
 			}
 		}
@@ -43,29 +45,44 @@ class FireUser {
 			} else {
 				completionHandler(true)
 			}
-			
-//			print("weee here it is")
+//			print("all the users:")
 //			print(everything)
 //			let userExist = everything![userID!]
-//			print("... AND HERE IS US:")
+//			print("..AND HERE IS US:")
 //			print(userExist)
-
 		}
 	}
 	
-	func copyUserIntoDatabase(user:FIRUser){
+	func updateUserWithKeyAndValue(key:String, value:AnyObject){
+		print("saving \(value) into \(key)")
+		let user = FIRAuth.auth()?.currentUser
+		FIRDatabase.database().reference().child("users").child(user!.uid).updateChildValues([key:value])
+	}
+	
+	func createUserInDatabase(user:FIRUser){
 		let emailString:String = user.email!
 		print("adding \(emailString) to the database")
 		let ref = FIRDatabase.database().reference()
 		let userRef = ref.child("users")
-		let nowDate = NSDate.init();
-		let unixNow = nowDate.timeIntervalSince1970;
 		let newUser = [
 			"email": emailString,
-			"createdAt": unixNow
+			"createdAt": NSDate.init().timeIntervalSince1970
 		]
 		let newChild = userRef.child(user.uid)
 		newChild.setValue(newUser)
+	}
+	
+	func getUser(completionHandler: (NSDictionary?) -> ()) {
+		let usersRef = FIRDatabase.database().reference().child("users")
+		let user = FIRAuth.auth()?.currentUser
+		usersRef.child(user!.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
+			if snapshot.value is NSNull {
+				completionHandler(nil)
+			} else {
+				let userData:NSDictionary? = snapshot.value as! NSDictionary?
+				completionHandler(userData)
+			}
+		}
 	}
 
 	

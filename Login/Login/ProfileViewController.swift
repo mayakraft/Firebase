@@ -34,7 +34,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		self.view.addSubview(nameField)
 		self.view.addSubview(emailField)
 		self.view.addSubview(signoutButton)
-		populateUserData()
+		
+		FireUser.shared.getUser { (userData) in
+			self.populateUserData(userData!)
+		}
 
 		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(textFieldDidChange), name: "UITextFieldTextDidChangeNotification", object: nil)
     }
@@ -61,49 +64,25 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 	}
 	
 	func textFieldDidEndEditing(textField: UITextField) {
-		print("did end")
 		if(textField.isEqual(nameField)){
-			print("gonna try to save")
-			
-			let user = FIRAuth.auth()?.currentUser
-//			user?.profileChangeRequest()
-			user?.setValue(nameField.text, forKey: "displayName")
-//			FIRAuth.auth()?.currentUser?.displayName = nameField.text
+			FireUser.shared.updateUserWithKeyAndValue("displayName", value: nameField.text!)
 		}
-		
 	}
 //	override func textFieldDidBeginEditing(textField: UITextField) {
 //		
 //	}
 	
-	func populateUserData(){
-		if (FIRAuth.auth()?.currentUser) != nil {
-			// User is signed in.
-			let user = FIRAuth.auth()?.currentUser
-			var profileImage :UIImage = UIImage()
-			if(user!.photoURL != nil){
-				let profileData : NSData = NSData.init(contentsOfURL: user!.photoURL!)!
-				profileImage = UIImage.init(data: profileData)!
-			}
-			profileImageView.image = profileImage
-			emailField.text = user?.email
-			nameField.text = user?.displayName
-			
-		} else {
-			// No user is signed in.
-		}
+	func populateUserData(userData:NSDictionary){
+
+//		var profileImage :UIImage = UIImage()
+//		if(user!.photoURL != nil){
+//			let profileData : NSData = NSData.init(contentsOfURL: user!.photoURL!)!
+//			profileImage = UIImage.init(data: profileData)!
+//		}
+//		profileImageView.image = profileImage
 		
+		emailField.text = userData["email"] as? String
+		nameField.text = userData["displayName"] as? String
 	}
-    
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+	
 }
