@@ -84,9 +84,9 @@ class FireUser {
 			}
 		}
 	}
-
 	
 	func user() -> FIRUser {
 		return (FIRAuth.auth()?.currentUser)!
 	}
+	
 }
