@@ -72,15 +72,15 @@ class FireUser {
 		newChild.setValue(newUser)
 	}
 	
-	func getUser(completionHandler: (NSDictionary?) -> ()) {
+	func getUser(completionHandler: (String?, NSDictionary?) -> ()) {
 		let usersRef = FIRDatabase.database().reference().child("users")
 		let user = FIRAuth.auth()?.currentUser
 		usersRef.child(user!.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
 			if snapshot.value is NSNull {
-				completionHandler(nil)
+				completionHandler(nil, nil)
 			} else {
 				let userData:NSDictionary? = snapshot.value as! NSDictionary?
-				completionHandler(userData)
+				completionHandler(user!.uid, userData)
 			}
 		}
 	}

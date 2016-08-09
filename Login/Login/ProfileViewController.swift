@@ -9,48 +9,6 @@
 import UIKit
 import Firebase
 
-//public func dataTaskWithRequest(request: NSURLRequest, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask
-//public func dataTaskWithURL(url: NSURL, completionHandler: (NSData?, NSURLResponse?, NSError?) -> Void) -> NSURLSessionDataTask
-
-
-extension UIImageView {
-	public func imageFromUrl(urlString: String) {
-		if let url = NSURL(string: urlString) {
-			let request = NSURLRequest(URL: url)
-			NSURLConnection.sendAsynchronousRequest(request, queue: NSOperationQueue.mainQueue()) {
-				(response: NSURLResponse?, data: NSData?, error: NSError?) -> Void in
-				if let imageData = data as NSData? {
-					self.image = UIImage(data: imageData)
-				}
-			}
-		}
-	}
-}
-//extension UIImageView {
-//	public func imageFromUrl(urlString: String) {
-//		if let url = NSURL(string: urlString) {
-//			let defaultSession = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
-//			var dataTask: NSURLSessionDataTask?
-//			UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-//			dataTask = defaultSession.dataTaskWithURL(url, completionHandler: { (imageData, response, error) in
-//				dispatch_async(dispatch_get_main_queue()) {
-//					UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-//				}
-//				if let error = error {
-//					print(error.localizedDescription)
-//				} else if let httpResponse = response as? NSHTTPURLResponse {
-//					print("response \(httpResponse.statusCode)")
-//					if httpResponse.statusCode == 200 {
-//						print("inside status Code")
-//						self.image = UIImage(data: imageData!)
-//					}
-//				}
-//			})
-//			dataTask?.resume()
-//		}
-//	}
-//}
-
 let NAV_BAR_PADDING :CGFloat = 44 + 20 + 10
 
 class ProfileViewController: UIViewController, UITextFieldDelegate{
@@ -83,8 +41,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		self.view.addSubview(emailField)
 		self.view.addSubview(signoutButton)
 		
-		FireUser.shared.getUser { (userData) in
-			self.populateUserData(userData!)
+		FireUser.shared.getUser { (uid, userData) in
+			print("Here's the user data:")
+			print(userData)
+			self.populateUserData(uid!, userData: userData!)
 		}
 
 		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(textFieldDidChange), name: "UITextFieldTextDidChangeNotification", object: nil)
@@ -133,9 +93,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 //		
 //	}
 	
-	func populateUserData(userData:NSDictionary){
+	func populateUserData(uid:String, userData:NSDictionary){
 		if(userData["image"] != nil){
-			profileImageView.imageFromUrl(userData["image"] as! String)
+			profileImageView.profileImageFromUID(uid)
+//			profileImageView.imageFromUrl(userData["image"] as! String)
 		}
 		emailField.text = userData["email"] as? String
 		nameField.text = userData["displayName"] as? String

@@ -37,7 +37,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		FIRApp.configure()
 		
 		FireUser.shared
-
+		LocalCache.shared
+		
 		if (FIRAuth.auth()?.currentUser) != nil {
 			// User is signed in.
 			launchAppWithProfileScreen()
