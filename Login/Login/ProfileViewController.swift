@@ -65,7 +65,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		self.view.addSubview(signoutButton)
 		
 		// populate screen
-		FireUser.shared.getUser { (uid, userData) in
+		Fire.shared.getUser { (uid, userData) in
 			print("Here's the user data:")
 			print(userData)
 			self.populateUserData(uid!, userData: userData!)
@@ -93,7 +93,6 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 	func logOut(){
 		do{
 			try FIRAuth.auth()?.signOut()
-//			self.navigationController?.popViewControllerAnimated(true)
 			self.navigationController?.dismissViewControllerAnimated(true, completion: nil)
 		}catch{
 			
@@ -104,15 +103,15 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		let alert = UIAlertController.init(title: "", message: nil, preferredStyle: .ActionSheet)
 		let action1 = UIAlertAction.init(title: "A", style: .Default) { (action) in
 			self.detail1Button.setTitle("A", forState: .Normal)
-			FireUser.shared.updateUserWithKeyAndValue("detail1", value: "A")
+			Fire.shared.updateUserWithKeyAndValue("detail1", value: "A")
 		}
 		let action2 = UIAlertAction.init(title: "B", style: .Default) { (action) in
 			self.detail1Button.setTitle("B", forState: .Normal)
-			FireUser.shared.updateUserWithKeyAndValue("detail1", value: "B")
+			Fire.shared.updateUserWithKeyAndValue("detail1", value: "B")
 		}
 		let action3 = UIAlertAction.init(title: "C", style: .Default) { (action) in
 			self.detail1Button.setTitle("C", forState: .Normal)
-			FireUser.shared.updateUserWithKeyAndValue("detail1", value: "C")
+			Fire.shared.updateUserWithKeyAndValue("detail1", value: "C")
 		}
 		let cancel = UIAlertAction.init(title: "Cancel", style: .Cancel) { (action) in }
 		alert.addAction(action1)
@@ -143,10 +142,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 	
 	func textFieldDidEndEditing(textField: UITextField) {
 		if(textField.isEqual(nameField)){
-			FireUser.shared.updateUserWithKeyAndValue("displayName", value: nameField.text!)
+			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text!)
 		}
 		if(textField.isEqual(detail2Field)){
-			FireUser.shared.updateUserWithKeyAndValue("detail2", value: nameField.text!)
+			Fire.shared.updateUserWithKeyAndValue("detail2", value: textField.text!)
 		}
 	}
 //	override func textFieldDidBeginEditing(textField: UITextField) {

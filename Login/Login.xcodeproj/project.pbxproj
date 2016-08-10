@@ -16,7 +16,7 @@
 		D5C98EFA1D58DB39006EF7A3 /* MasterNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C98EF91D58DB39006EF7A3 /* MasterNavigationController.swift */; };
 		D5C98EFC1D598AB8006EF7A3 /* LocalCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5C98EFB1D598AB8006EF7A3 /* LocalCache.swift */; };
 		D5E0DB091D555BEA00BEA4D1 /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0DB081D555BEA00BEA4D1 /* ProfileViewController.swift */; };
-		D5E0DB0B1D56619F00BEA4D1 /* FireUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0DB0A1D56619F00BEA4D1 /* FireUser.swift */; };
+		D5E0DB0B1D56619F00BEA4D1 /* Fire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E0DB0A1D56619F00BEA4D1 /* Fire.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,7 +33,7 @@
 		D5C98EF91D58DB39006EF7A3 /* MasterNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterNavigationController.swift; sourceTree = "<group>"; };
 		D5C98EFB1D598AB8006EF7A3 /* LocalCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocalCache.swift; sourceTree = "<group>"; };
 		D5E0DB081D555BEA00BEA4D1 /* ProfileViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
-		D5E0DB0A1D56619F00BEA4D1 /* FireUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FireUser.swift; sourceTree = "<group>"; };
+		D5E0DB0A1D56619F00BEA4D1 /* Fire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fire.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,8 +86,8 @@
 		D59D30311D5523E30051C481 /* Login */ = {
 			isa = PBXGroup;
 			children = (
+				D5E0DB0A1D56619F00BEA4D1 /* Fire.swift */,
 				D5C98EFB1D598AB8006EF7A3 /* LocalCache.swift */,
-				D5E0DB0A1D56619F00BEA4D1 /* FireUser.swift */,
 				D59D30321D5523E30051C481 /* AppDelegate.swift */,
 				D59D30341D5523E30051C481 /* LoginViewController.swift */,
 				D5C98EF91D58DB39006EF7A3 /* MasterNavigationController.swift */,
@@ -226,7 +226,7 @@
 				D5C98EFA1D58DB39006EF7A3 /* MasterNavigationController.swift in Sources */,
 				D5E0DB091D555BEA00BEA4D1 /* ProfileViewController.swift in Sources */,
 				D59D30351D5523E30051C481 /* LoginViewController.swift in Sources */,
-				D5E0DB0B1D56619F00BEA4D1 /* FireUser.swift in Sources */,
+				D5E0DB0B1D56619F00BEA4D1 /* Fire.swift in Sources */,
 				D59D30331D5523E30051C481 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

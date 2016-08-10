@@ -1,8 +1,8 @@
 //
 //  AppDelegate.swift
-//  Login
+//  Browse
 //
-//  Created by Robby on 8/5/16.
+//  Created by Robby on 8/10/16.
 //  Copyright © 2016 Robby. All rights reserved.
 //
 
@@ -14,39 +14,47 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 	var window: UIWindow?
 	
-	func launchAppWithLoginScreen(){
+	let navigationController : UINavigationController = UINavigationController()
+
+
+	func launchAppWithData(data:Dictionary<String, AnyObject>){
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.mainScreen().bounds
-		let loginVC : LoginViewController = LoginViewController()
-		self.window?.rootViewController = loginVC
+		let vc : TableViewController = TableViewController()
+		vc.data = data;
+		vc.keyArray = Array(data.keys)
+
+		navigationController.setViewControllers([vc], animated:false)
+		self.window?.rootViewController = navigationController
 		self.window?.makeKeyAndVisible()
+		
+
 	}
 	
-	func launchAppWithProfileScreen(){
-		self.window = UIWindow()
-		self.window?.frame = UIScreen.mainScreen().bounds
-		let loginVC : LoginViewController = LoginViewController()
-		loginVC.emailField.text = FIRAuth.auth()?.currentUser?.email
-		self.window?.rootViewController = loginVC
-		self.window?.makeKeyAndVisible()
-		loginVC.presentViewController(MasterNavigationController(), animated: false, completion: nil)
+	func loadDatabase(completionHandler: (Dictionary<String, AnyObject>?) -> ()) {
+		let ref : FIRDatabaseReference = FIRDatabase.database().reference()
+		ref.observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
+			if snapshot.value is NSNull {
+				completionHandler(nil)
+			} else {
+				let data:Dictionary = snapshot.value as! Dictionary<String, AnyObject>
+				completionHandler(data)
+			}
+		}
+		
 	}
+
 
 	func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 		// Override point for customization after application launch.
 		
 		FIRApp.configure()
 		
-		Fire.shared
-		LocalCache.shared
-		
-		if (FIRAuth.auth()?.currentUser) != nil {
-			// User is signed in.
-			launchAppWithProfileScreen()
-		} else {
-			// No user is signed in.
-			launchAppWithLoginScreen()
+		loadDatabase { (data) in
+			self.launchAppWithData(data!)
 		}
+		
+		
 		return true
 	}
 
@@ -74,3 +82,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
 }
+

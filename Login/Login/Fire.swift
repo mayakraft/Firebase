@@ -16,11 +16,16 @@
 
 import Firebase
 
-//private let shared = FireUser()
-class FireUser {
-	static let shared = FireUser()
+//private let shared = Fire()
+class Fire {
+	static let shared = Fire()
+	
+	let ref: FIRDatabaseReference
 	
 	private init() {
+		ref = FIRDatabase.database().reference()
+		
+		// setup USER listener
 		FIRAuth.auth()?.addAuthStateDidChangeListener { auth, user in
 			if user != nil {
 				print("   AUTH LISTENER: user \(user?.email) signed in")
@@ -38,8 +43,7 @@ class FireUser {
 	
 	
 	func checkIfUserExists(user: FIRUser, completionHandler: (Bool) -> ()) {
-		let usersRef = FIRDatabase.database().reference().child("users")
-		usersRef.child(user.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
+		ref.child("users").child(user.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
 			if snapshot.value is NSNull {
 				completionHandler(false)
 			} else {
@@ -47,35 +51,28 @@ class FireUser {
 			}
 //			print("all the users:")
 //			print(everything)
-//			let userExist = everything![userID!]
-//			print("..AND HERE IS US:")
-//			print(userExist)
 		}
 	}
 	
 	func updateUserWithKeyAndValue(key:String, value:AnyObject){
 		print("saving \(value) into \(key)")
 		let user = FIRAuth.auth()?.currentUser
-		FIRDatabase.database().reference().child("users").child(user!.uid).updateChildValues([key:value])
+		ref.child("users").child(user!.uid).updateChildValues([key:value])
 	}
 	
 	func createUserInDatabase(user:FIRUser){
 		let emailString:String = user.email!
-		print("adding \(emailString) to the database")
-		let ref = FIRDatabase.database().reference()
-		let userRef = ref.child("users")
 		let newUser = [
 			"email": emailString,
 			"createdAt": NSDate.init().timeIntervalSince1970
 		]
-		let newChild = userRef.child(user.uid)
-		newChild.setValue(newUser)
+		ref.child("users").child(user.uid).setValue(newUser)
+		print("added \(emailString) to the database")
 	}
 	
 	func getUser(completionHandler: (String?, NSDictionary?) -> ()) {
-		let usersRef = FIRDatabase.database().reference().child("users")
 		let user = FIRAuth.auth()?.currentUser
-		usersRef.child(user!.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
+		ref.child("users").child(user!.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
 			if snapshot.value is NSNull {
 				completionHandler(nil, nil)
 			} else {
