@@ -11,18 +11,18 @@ import Firebase
 
 class TableViewController: UITableViewController {
 
-	var data: AnyObject?// : Dictionary<String, AnyObject>?
-//	{
-//		get{
-//			return self.data
-//		}
-//		set{
-//			self.data = newValue
-//			keyArray = Array(self.data!.keys)
-//		}
-//	}
-
 	var keyArray : Array<String>?
+
+	var data: AnyObject?// : Dictionary<String, AnyObject>?
+	{
+		didSet{
+			if(self.data is [String:AnyObject]){
+				let d:[String:AnyObject] = self.data as! [String:AnyObject]
+				keyArray = Array(d.keys)
+			}
+		}
+	}
+
 
 	override func viewDidLoad() {
 		super.viewDidLoad()

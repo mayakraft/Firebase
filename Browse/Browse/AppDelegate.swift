@@ -14,23 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 	var window: UIWindow?
 	
-	let navigationController : UINavigationController = UINavigationController()
-
-
-	func launchAppWithData(data:Dictionary<String, AnyObject>){
-		self.window = UIWindow()
-		self.window?.frame = UIScreen.mainScreen().bounds
-		let vc : TableViewController = TableViewController()
-		vc.data = data;
-		vc.keyArray = Array(data.keys)
-
-		navigationController.setViewControllers([vc], animated:false)
-		self.window?.rootViewController = navigationController
-		self.window?.makeKeyAndVisible()
-		
-
-	}
-	
 	func loadDatabase(completionHandler: (Dictionary<String, AnyObject>?) -> ()) {
 		let ref : FIRDatabaseReference = FIRDatabase.database().reference()
 		ref.observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
@@ -41,17 +24,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 				completionHandler(data)
 			}
 		}
-		
 	}
 
-
+	func launchAppWithData(data:Dictionary<String, AnyObject>){
+		self.window = UIWindow()
+		self.window?.frame = UIScreen.mainScreen().bounds
+		let vc : TableViewController = TableViewController()
+		vc.data = data;
+		let navigationController : UINavigationController = UINavigationController()
+		navigationController.setViewControllers([vc], animated:false)
+		self.window?.rootViewController = navigationController
+		self.window?.makeKeyAndVisible()
+	}
+	
 	func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 		// Override point for customization after application launch.
 		
 		FIRApp.configure()
 		
 		loadDatabase { (data) in
-			self.launchAppWithData(data!)
+			if(data != nil){
+				self.launchAppWithData(data!)
+			}
+			else{
+				self.window = UIWindow()
+				self.window?.frame = UIScreen.mainScreen().bounds
+				let vc : UIViewController = UIViewController()
+				self.window?.rootViewController = vc
+				self.window?.makeKeyAndVisible()
+				vc.view.backgroundColor = UIColor.whiteColor()
+				let alert = UIAlertController.init(title: "problem connecting to the database", message: nil, preferredStyle: .Alert)
+				vc.presentViewController(alert, animated: true, completion: nil)
+			}
 		}
 		
 		
