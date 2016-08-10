@@ -26,7 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		}
 	}
 
-	func launchAppWithData(data:Dictionary<String, AnyObject>){
+	func launchWithData(data:Dictionary<String, AnyObject>){
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.mainScreen().bounds
 		let vc : TableViewController = TableViewController()
@@ -37,28 +37,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		self.window?.makeKeyAndVisible()
 	}
 	
+	func launchWithError(errorString:String?){
+		self.window = UIWindow()
+		self.window?.frame = UIScreen.mainScreen().bounds
+		let vc : UIViewController = UIViewController()
+		self.window?.rootViewController = vc
+		self.window?.makeKeyAndVisible()
+		let alert = UIAlertController.init(title: errorString, message: nil, preferredStyle: .Alert)
+		let okay = UIAlertAction.init(title: "Quit", style: .Cancel) { (action) in
+			exit(0)
+		}
+		alert.addAction(okay)
+		vc.presentViewController(alert, animated: true, completion: nil)
+	}
+	
 	func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 		// Override point for customization after application launch.
-		
 		FIRApp.configure()
-		
 		loadDatabase { (data) in
 			if(data != nil){
-				self.launchAppWithData(data!)
+				self.launchWithData(data!)
 			}
 			else{
-				self.window = UIWindow()
-				self.window?.frame = UIScreen.mainScreen().bounds
-				let vc : UIViewController = UIViewController()
-				self.window?.rootViewController = vc
-				self.window?.makeKeyAndVisible()
-				vc.view.backgroundColor = UIColor.whiteColor()
-				let alert = UIAlertController.init(title: "problem connecting to the database", message: nil, preferredStyle: .Alert)
-				vc.presentViewController(alert, animated: true, completion: nil)
+				self.launchWithError("problem connecting to the database")
 			}
 		}
-		
-		
 		return true
 	}
 

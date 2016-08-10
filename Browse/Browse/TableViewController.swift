@@ -11,10 +11,15 @@ import Firebase
 
 class TableViewController: UITableViewController {
 
-	var keyArray : Array<String>?
+	// if tableview's datasource is a DICTIONARY:
+	//    it populates its rows with its KEYS
+	// if datasource is ARRAY
+	//    it populates with array (indexPath row numbers)
+	
+	var keyArray : Array<String>?  // only used if dataSource is a DICTIONARY
 
-	var data: AnyObject?// : Dictionary<String, AnyObject>?
-	{
+	// the DATA SOURCE
+	var data: AnyObject? {
 		didSet{
 			if(self.data is [String:AnyObject]){
 				let d:[String:AnyObject] = self.data as! [String:AnyObject]
@@ -23,85 +28,92 @@ class TableViewController: UITableViewController {
 		}
 	}
 
-
-	override func viewDidLoad() {
-		super.viewDidLoad()
+	func showingArray() -> Bool {
+		return self.data is [AnyObject]
 	}
-	
+	func showingDictionary() -> Bool {
+		return self.data is [String:AnyObject]
+	}
+
 	override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
 		if(self.data != nil){
 			return 1
 		}
 		return 0
 	}
+	
 	override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		if(self.data is [String:AnyObject]){
+		if(showingArray()){
+			return (self.data?.count)!
+		}
+		if(showingDictionary()){
 			if(self.keyArray != nil){
 				return self.keyArray!.count
 			}
-		}
-		else if(self.data is [AnyObject]){
-			return (self.data?.count)!
 		}
 		return 0
 	}
 	
 	override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-		let cell = UITableViewCell()
+		let cell = UITableViewCell.init(style: .Value1, reuseIdentifier: "tableCell")
 		var text: String = ""
-		if(self.data is [String:AnyObject]){
+		var detailText: String = ""
+		var nextObject: AnyObject?
+		
+		if(showingArray()){
+			text = String(indexPath.row)
+			nextObject = self.data![indexPath.row]
+		}
+		if(showingDictionary()){
 			text = String(self.keyArray![indexPath.row])
+			nextObject = self.data![ self.keyArray![indexPath.row] ]
 		}
-		else if(self.data is [AnyObject]){
-//			let arr = self.data as! Array<AnyObject>
-			text = String(indexPath.row)//arr[indexPath.row] as! String
+
+		if(nextObject is [String:AnyObject]){
+			detailText = "Dictionary"
 		}
+		if(nextObject is [AnyObject]){
+			detailText = "Array"
+		}
+		if(nextObject is String || nextObject is Int || nextObject is Float){
+			detailText = String(nextObject!)
+		}
+
 		cell.textLabel?.text = text
+		cell.detailTextLabel?.text = detailText
+
 		return cell
 	}
 	
 	override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-		let vc: TableViewController = TableViewController()
-		if(self.data is [AnyObject]){
-			let d = self.data! as! Array<AnyObject>
-			if(d[indexPath.row] is [AnyObject]){
-				print("next view is a ARRAY")
-				let nextData: Array = (d[indexPath.row] as? Array<AnyObject>)!
-				vc.data = nextData
-				self.navigationController?.pushViewController(vc, animated: true)
-			}
-			if(d[indexPath.row] is [String:AnyObject]){
-				print("next view is a DICTIONARY")
-				let nextData: Dictionary = (d[indexPath.row] as? Dictionary<String, AnyObject>)!
-				vc.data = nextData
-				vc.keyArray = Array(nextData.keys)
-				self.navigationController?.pushViewController(vc, animated: true)
-			}
+		var nextObject:AnyObject?
+		var nextTitle:String = ""
+		
+		// depending on DICTIONARY or ARRAY, let's grab the next object to show
+		if(showingArray()){
+			nextObject = self.data![indexPath.row]
+			nextTitle = String(indexPath.row)
 		}
-		if(self.data is [String:AnyObject]){
+		if(showingDictionary()){
 			let key: String = keyArray![indexPath.row]
-			let d = self.data![key]
-			let type = String(d.dynamicType)
-			print(type)
-			if(self.data![key] is [AnyObject]){
-				print("next view is an ARRAY")
-				let nextData: Array = (self.data![key] as? Array<AnyObject>)!
-				vc.data = nextData
-				self.navigationController?.pushViewController(vc, animated: true)
-			}
-			if(self.data![key] is [String:AnyObject]){
-				print("next view is a DICTIONARY")
-				let nextData: Dictionary = (self.data![key] as? Dictionary<String, AnyObject>)!
-				vc.data = nextData
-				vc.keyArray = Array(nextData.keys)
-				self.navigationController?.pushViewController(vc, animated: true)
-			}
+			nextObject = self.data![key]
+			nextTitle = String(self.keyArray![indexPath.row])
 		}
-	}
-	
-	
-	override func didReceiveMemoryWarning() {
-		super.didReceiveMemoryWarning()
+
+		// if this element is the leaf (last level down)
+		if(nextObject is String || nextObject is Int || nextObject is Float){
+			let vc: StringViewController = StringViewController()
+			vc.string = String(nextObject!)
+			vc.title = nextTitle
+			self.navigationController?.pushViewController(vc, animated: true)
+		}
+		// if there are more levels below
+		else{
+			let vc: TableViewController = TableViewController()
+			vc.data = nextObject
+			vc.title = nextTitle
+			self.navigationController?.pushViewController(vc, animated: true)
+		}
 	}
 	
 }
