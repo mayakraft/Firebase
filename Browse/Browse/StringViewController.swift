@@ -11,9 +11,9 @@ import UIKit
 class StringViewController: UIViewController {
 
 	var textView:UITextView = UITextView()
-	var string:String = ""{
+	var data:String = ""{
 		didSet{
-			textView.text = string
+			textView.text = data
 		}
 	}
 		

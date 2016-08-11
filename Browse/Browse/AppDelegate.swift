@@ -14,25 +14,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 	var window: UIWindow?
 	
-	func loadDatabase(completionHandler: (Dictionary<String, AnyObject>?) -> ()) {
-		let ref : FIRDatabaseReference = FIRDatabase.database().reference()
-		ref.observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
-			if snapshot.value is NSNull {
-				completionHandler(nil)
-			} else {
-				let data:Dictionary = snapshot.value as! Dictionary<String, AnyObject>
-				completionHandler(data)
-			}
-		}
-	}
-
-	func launchWithData(data:Dictionary<String, AnyObject>){
+	func launchWithData(data:AnyObject){
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.mainScreen().bounds
-		let vc : TableViewController = TableViewController()
-		vc.data = data;
 		let navigationController : UINavigationController = UINavigationController()
-		navigationController.setViewControllers([vc], animated:false)
+
+		// DATA is an Array or Dictionary
+		if(data is Array<AnyObject> || data is Dictionary<String,AnyObject>){
+			let vc : TableViewController = TableViewController()
+			vc.data = data;
+			navigationController.setViewControllers([vc], animated:false)
+		}
+		// DATA is a leaf: String, Int, or Float
+		if(data is String || data is Int || data is Float){
+			let vc : StringViewController = StringViewController()
+			vc.data = data as! String;
+			navigationController.setViewControllers([vc], animated:false)
+		}
+		
 		self.window?.rootViewController = navigationController
 		self.window?.makeKeyAndVisible()
 	}
@@ -54,7 +53,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 		// Override point for customization after application launch.
 		FIRApp.configure()
-		loadDatabase { (data) in
+		Fire.shared.loadData(nil) { (data) in
 			if(data != nil){
 				self.launchWithData(data!)
 			}

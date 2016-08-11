@@ -103,7 +103,7 @@ class TableViewController: UITableViewController {
 		// if this element is the leaf (last level down)
 		if(nextObject is String || nextObject is Int || nextObject is Float){
 			let vc: StringViewController = StringViewController()
-			vc.string = String(nextObject!)
+			vc.data = String(nextObject!)
 			vc.title = nextTitle
 			self.navigationController?.pushViewController(vc, animated: true)
 		}
