@@ -75,7 +75,7 @@ class TableViewController: UITableViewController {
 		if(nextObject is [AnyObject]){
 			detailText = "Array"
 		}
-		if(nextObject is String || nextObject is Int || nextObject is Float){
+		if(nextObject is String || nextObject is Int || nextObject is Float || nextObject is Bool){
 			detailText = String(nextObject!)
 		}
 
@@ -101,7 +101,7 @@ class TableViewController: UITableViewController {
 		}
 
 		// if this element is the leaf (last level down)
-		if(nextObject is String || nextObject is Int || nextObject is Float){
+		if(nextObject is String || nextObject is Int || nextObject is Float || nextObject is Bool){
 			let vc: StringViewController = StringViewController()
 			vc.data = String(nextObject!)
 			vc.title = nextTitle

@@ -26,7 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 			navigationController.setViewControllers([vc], animated:false)
 		}
 		// DATA is a leaf: String, Int, or Float
-		if(data is String || data is Int || data is Float){
+		if(data is String || data is Int || data is Float || data is Bool){
 			let vc : StringViewController = StringViewController()
 			vc.data = data as! String;
 			navigationController.setViewControllers([vc], animated:false)
