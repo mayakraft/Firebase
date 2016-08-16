@@ -8,7 +8,7 @@
 
 import UIKit
 
-class StringViewController: UIViewController {
+class ObjectViewController: UIViewController {
 
 	var textView:UITextView = UITextView()
 	var data:String = ""{
@@ -20,6 +20,7 @@ class StringViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 		textView.frame = view.frame
+		textView.font = UIFont.systemFontOfSize(18)
 		self.view.addSubview(textView)
     }
 }

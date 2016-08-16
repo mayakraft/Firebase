@@ -27,6 +27,8 @@ class TableViewController: UITableViewController {
 			}
 		}
 	}
+	
+	var address: NSURL?
 
 	func showingArray() -> Bool {
 		return self.data is [AnyObject]
@@ -52,6 +54,13 @@ class TableViewController: UITableViewController {
 			}
 		}
 		return 0
+	}
+	
+	override func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+		if(address != nil){
+			return String(address!)
+		}
+		return nil
 	}
 	
 	override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -102,7 +111,7 @@ class TableViewController: UITableViewController {
 
 		// if this element is the leaf (last level down)
 		if(nextObject is String || nextObject is Int || nextObject is Float || nextObject is Bool){
-			let vc: StringViewController = StringViewController()
+			let vc: ObjectViewController = ObjectViewController()
 			vc.data = String(nextObject!)
 			vc.title = nextTitle
 			self.navigationController?.pushViewController(vc, animated: true)
@@ -112,6 +121,7 @@ class TableViewController: UITableViewController {
 			let vc: TableViewController = TableViewController()
 			vc.data = nextObject
 			vc.title = nextTitle
+			vc.address = self.address?.URLByAppendingPathComponent(nextTitle)
 			self.navigationController?.pushViewController(vc, animated: true)
 		}
 	}

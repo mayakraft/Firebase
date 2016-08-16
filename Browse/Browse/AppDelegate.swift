@@ -23,11 +23,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		if(data is Array<AnyObject> || data is Dictionary<String,AnyObject>){
 			let vc : TableViewController = TableViewController()
 			vc.data = data;
+			vc.address = NSURL.init(string: "/")
 			navigationController.setViewControllers([vc], animated:false)
 		}
 		// DATA is a leaf: String, Int, or Float
 		if(data is String || data is Int || data is Float || data is Bool){
-			let vc : StringViewController = StringViewController()
+			let vc : ObjectViewController = ObjectViewController()
 			vc.data = data as! String;
 			navigationController.setViewControllers([vc], animated:false)
 		}
