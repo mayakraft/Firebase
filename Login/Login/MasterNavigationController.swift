@@ -30,7 +30,8 @@ class MasterNavigationController: UINavigationController {
 	}
 	
 	
-	func initCustom(){		
+	func initCustom(){
+		print("init master nav controller")
 		let profileVC : ProfileViewController = ProfileViewController()
 		profileVC.title = FIRAuth.auth()?.currentUser?.email
 		self.viewControllers = [profileVC]

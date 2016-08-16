@@ -9,19 +9,23 @@
 import UIKit
 import Firebase
 
-class LocalCache {
-	static let shared = LocalCache()
+class Storage {
+	static let shared = Storage()
 	private init() { }
 	
 	var profileImage : Dictionary<String, UIImage> = Dictionary()
+	
+	
 }
+
+
 
 extension UIImageView {
 	
 	public func profileImageFromUID(uid: String){
-		if(LocalCache.shared.profileImage[uid] != nil){
+		if(Storage.shared.profileImage[uid] != nil){
 			print("shortcut, we already have an image")
-			self.image = LocalCache.shared.profileImage[uid]!
+			self.image = Storage.shared.profileImage[uid]!
 			return
 		}
 		Fire.shared.getUser { (userUID, userData) in
@@ -35,7 +39,7 @@ extension UIImageView {
 							dispatch_async(dispatch_get_main_queue()) {
 								if let imageData = data as NSData? {
 									//								print("downloaded success")
-									LocalCache.shared.profileImage[uid] = UIImage(data: imageData)
+									Storage.shared.profileImage[uid] = UIImage(data: imageData)
 									self.image = UIImage(data: imageData)
 								}
 							}

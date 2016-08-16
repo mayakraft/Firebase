@@ -10,3 +10,7 @@ Login portal: create a personal account / login, logs you into your profile page
 # Browse
 
 Browse your entire database in a simple UITableView. Firebase sometimes delivers data as an `Array` or `Dictionary`, this handles each case.
+
+# Storage
+
+Upload images from your iOS device onto Firebase Storage. Firebase doesn't handle directory contents, so the app also mirrors the contents of the Storage on a folder in the database which is accessible.

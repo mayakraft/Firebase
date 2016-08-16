@@ -21,6 +21,13 @@ class LoginViewController: UIViewController {
 		emailField.backgroundColor = UIColor.whiteColor()
 		passwordField.backgroundColor = UIColor.whiteColor()
 		passwordField.secureTextEntry = true
+		
+//		let paddingView = UIView.init(frame: CGRectMake(0, 0, 5, 20))
+//		emailField.leftView = paddingView
+//		passwordField.leftView = paddingView
+//		emailField.leftViewMode = .Always
+//		passwordField.leftViewMode = .Always
+
 		self.view.addSubview(emailField)
 		self.view.addSubview(passwordField)
 

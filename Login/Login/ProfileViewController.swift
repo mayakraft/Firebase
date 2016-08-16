@@ -55,6 +55,18 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		detail1Button.titleLabel?.textAlignment = .Center
 		detail2Field.backgroundColor = UIColor.whiteColor()
 		signoutButton.backgroundColor = UIColor.blueColor()
+		nameField.placeholder = "Name"
+		emailField.placeholder = "Email Address"
+		detail2Field.placeholder = "Detail Text"
+		
+		// text field padding
+//		let paddingView = UIView.init(frame: CGRectMake(0, 0, 5, 20))
+//		nameField.leftView = paddingView
+//		emailField.leftView = paddingView
+//		detail2Field.leftView = paddingView
+//		nameField.leftViewMode = UITextFieldViewMode.Always
+//		emailField.leftViewMode = UITextFieldViewMode.Always
+//		detail2Field.leftViewMode = UITextFieldViewMode.Always
 
 		self.view.addSubview(profileImageView)
 		self.view.addSubview(profileImageButton)

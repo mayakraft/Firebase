@@ -28,7 +28,7 @@ class Fire {
 		// setup USER listener
 		FIRAuth.auth()?.addAuthStateDidChangeListener { auth, user in
 			if user != nil {
-				print("   AUTH LISTENER: user \(user?.email) signed in")
+				print("   AUTH LISTENER: user \(user?.email!) signed in")
 				self.checkIfUserExists(user!, completionHandler: { (exists) in
 					if(exists){ }
 					else{
