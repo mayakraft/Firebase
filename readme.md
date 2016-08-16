@@ -13,4 +13,4 @@ Browse your entire database in a simple UITableView. Firebase sometimes delivers
 
 # Storage
 
-Upload images from your iOS device onto Firebase Storage. Firebase doesn't handle directory contents, so the app also mirrors the contents of the Storage on a folder in the database which is accessible.
+A handy set of file upload functions - since Firebase Storage doesn't keep track of the files you upload, this also maintains a record of the uploaded files in your database.

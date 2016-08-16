@@ -8,6 +8,10 @@
 
 import Firebase
 
+enum StorageFileType {
+	case IMAGE_JPG, IMAGE_PNG, DOCUMENT_PDF
+}
+
 class Fire {
 	
 	static let shared = Fire()
@@ -39,21 +43,36 @@ class Fire {
 		}
 	}
 	
-	// successful image upload returns
-	func uploadImage(data:NSData, completionHandler: (filename:String?, uploadURL:NSURL?) -> ()) {
-		let imageName:String = NSUUID.init().UUIDString + ".jpg"
-		let path = "images/" + imageName
-		print("trying to upload image: \(path)")
-		let riversRef = storage.child(path)
-		currentUpload = riversRef.putData(data, metadata: nil) { metadata, error in
+	func uploadFileAndMakeRecord(data:NSData, fileType:StorageFileType, completionHandler: (filename:String?, downloadURL:NSURL?) -> ()) {
+		
+		var path:String
+		var filename:String = NSUUID.init().UUIDString
+
+		switch fileType {
+			case .IMAGE_JPG:
+				filename = filename + ".jpg"
+				path = "files/images/" + filename
+				break
+			case .IMAGE_PNG:
+				filename = filename + ".png"
+				path = "files/images/" + filename
+				break
+			case .DOCUMENT_PDF:
+				filename = filename + ".pdf"
+				path = "files/documents/" + filename
+				break
+		}
+		
+		// TODO: make currentUpload an array, if upload in progress add this to array
+		currentUpload = storage.child(path).putData(data, metadata: nil) { metadata, error in
 			if (error != nil) {
 				print(error)
-				completionHandler(filename: nil, uploadURL: nil)
+				completionHandler(filename: nil, downloadURL: nil)
 			} else {
 				// Metadata contains file metadata such as size, content-type, and download URL.
 				let downloadURL = metadata!.downloadURL()
-				completionHandler(filename: imageName, uploadURL: downloadURL)
-				self.saveImageNameToDatabase(imageName)
+				completionHandler(filename: filename, downloadURL: downloadURL)
+				self.saveImageNameToDatabase(filename)
 			}
 		}
 	}

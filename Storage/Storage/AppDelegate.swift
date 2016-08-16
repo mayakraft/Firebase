@@ -67,12 +67,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIImagePickerControllerDe
 		let data = UIImageJPEGRepresentation(image, 0.5)
 		if(data != nil){
 			print("data not nil")
-			Fire.shared.uploadImage(data!, completionHandler: { (filename, uploadURL) in
+			Fire.shared.uploadFileAndMakeRecord(data!, fileType: .IMAGE_JPG, completionHandler: { (filename, downloadURL) in
 				if(filename != nil){
 					print(filename!)
 				}
-				if(uploadURL != nil){
-					print(uploadURL!)
+				if(downloadURL != nil){
+					print(downloadURL!)
 				}
 			})
 		}
