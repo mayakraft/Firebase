@@ -8,8 +8,22 @@
 
 import Firebase
 
+let IMAGE_DIRECTORY:String = "images/"
+let DOCUMENT_DIRECTORY:String = "documents/"
+
 enum StorageFileType {
 	case IMAGE_JPG, IMAGE_PNG, DOCUMENT_PDF
+}
+
+func stringForStorageFileType(fileType:StorageFileType) -> String {
+	switch fileType {
+	case .IMAGE_JPG:
+		return "JPG"
+	case .IMAGE_PNG:
+		return "PNG"
+	case .DOCUMENT_PDF:
+		return "PDF"
+	}
 }
 
 class Fire {
@@ -19,7 +33,7 @@ class Fire {
 	let database : FIRDatabaseReference = FIRDatabase.database().reference()
 	let storage = FIRStorage.storage().reference()
 	
-	// snapshot of the database
+	// snapshot from the last call to "loadData"
 	var data: AnyObject?
 	
 	// can monitor, pause, resume the current upload task
@@ -38,6 +52,7 @@ class Fire {
 			if snapshot.value is NSNull {
 				completionHandler(nil)
 			} else {
+				self.data = snapshot.value
 				completionHandler(snapshot.value)
 			}
 		}
@@ -45,41 +60,46 @@ class Fire {
 	
 	func uploadFileAndMakeRecord(data:NSData, fileType:StorageFileType, completionHandler: (filename:String?, downloadURL:NSURL?) -> ()) {
 		
-		var path:String
+		// prep file info
+		var storagePath:String
 		var filename:String = NSUUID.init().UUIDString
-
+		var databaseDirectory:String
 		switch fileType {
 			case .IMAGE_JPG:
 				filename = filename + ".jpg"
-				path = "files/images/" + filename
+				storagePath = IMAGE_DIRECTORY + filename
+				databaseDirectory = "files/" + IMAGE_DIRECTORY
 				break
 			case .IMAGE_PNG:
 				filename = filename + ".png"
-				path = "files/images/" + filename
+				storagePath = IMAGE_DIRECTORY + filename
+				databaseDirectory = "files/" + IMAGE_DIRECTORY
 				break
 			case .DOCUMENT_PDF:
 				filename = filename + ".pdf"
-				path = "files/documents/" + filename
+				storagePath = DOCUMENT_DIRECTORY + filename
+				databaseDirectory = "files/" + DOCUMENT_DIRECTORY
 				break
 		}
 		
-		// TODO: make currentUpload an array, if upload in progress add this to array
-		currentUpload = storage.child(path).putData(data, metadata: nil) { metadata, error in
+		// STEP 1 - upload file to storage
+		currentUpload = storage.child(storagePath).putData(data, metadata: nil) { metadata, error in
+			// TODO: make currentUpload an array, if upload in progress add this to array
 			if (error != nil) {
 				print(error)
 				completionHandler(filename: nil, downloadURL: nil)
 			} else {
-				// Metadata contains file metadata such as size, content-type, and download URL.
-				let downloadURL = metadata!.downloadURL()
-				completionHandler(filename: filename, downloadURL: downloadURL)
-				self.saveImageNameToDatabase(filename)
+				// STEP 2 - record new file in database
+				let downloadURL = metadata!.downloadURL()!
+				let key = self.database.child(databaseDirectory).childByAutoId().key
+				let entry:Dictionary = ["file":storagePath,
+				                        "type":stringForStorageFileType(fileType),
+				                        "url":downloadURL.absoluteString]
+				self.database.child(databaseDirectory).updateChildValues([key:entry]) { (error, ref) in
+					completionHandler(filename: filename, downloadURL: downloadURL)
+				}
 			}
 		}
-	}
-	func saveImageNameToDatabase(filename:String){
-		print("UPLOAD SUCCESS: copying \(filename) into images database")
-		let key = database.child("images").childByAutoId().key
-		database.child("images").updateChildValues([key:filename])
 	}
 }
 

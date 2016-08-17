@@ -9,6 +9,8 @@
 import UIKit
 import Firebase
 
+let ENTRY_POINT:String = "files/"
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -23,12 +25,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIImagePickerControllerDe
 		if(data is Array<AnyObject> || data is Dictionary<String,AnyObject>){
 			let vc : TableViewController = TableViewController()
 			vc.data = data;
-			vc.address = NSURL.init(string: "images/")
+			vc.address = NSURL.init(string: ENTRY_POINT)
 			navigationController.setViewControllers([vc], animated:false)
 		}
-		// DATA is a leaf: String, Int, or Float
+		// DATA is a leaf
 		if(data is String || data is Int || data is Float || data is Bool){
-			let vc : ObjectViewController = ObjectViewController()
+			let vc : FileViewController = FileViewController()
 			vc.data = data as! String;
 			navigationController.setViewControllers([vc], animated:false)
 		}
@@ -87,7 +89,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIImagePickerControllerDe
 		
 		FIRApp.configure()
 		
-		Fire.shared.loadData("images/") { (data) in
+		Fire.shared.loadData(ENTRY_POINT) { (data) in
 			if(data != nil){
 				self.launchWithData(data!)
 			}

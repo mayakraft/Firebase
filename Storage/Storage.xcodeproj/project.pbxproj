@@ -12,7 +12,7 @@
 		D59DF2BF1D637760003F722B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D59DF2BE1D637760003F722B /* Assets.xcassets */; };
 		D59DF2C21D637760003F722B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D59DF2C01D637760003F722B /* LaunchScreen.storyboard */; };
 		D59DF2CA1D637775003F722B /* Fire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59DF2C91D637775003F722B /* Fire.swift */; };
-		D59DF2CD1D63777C003F722B /* ObjectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59DF2CB1D63777C003F722B /* ObjectViewController.swift */; };
+		D59DF2CD1D63777C003F722B /* FileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59DF2CB1D63777C003F722B /* FileViewController.swift */; };
 		D59DF2CE1D63777C003F722B /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D59DF2CC1D63777C003F722B /* TableViewController.swift */; };
 		D59DF2D01D637781003F722B /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D59DF2CF1D637781003F722B /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
@@ -26,7 +26,7 @@
 		D59DF2C11D637760003F722B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D59DF2C31D637760003F722B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D59DF2C91D637775003F722B /* Fire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fire.swift; sourceTree = "<group>"; };
-		D59DF2CB1D63777C003F722B /* ObjectViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectViewController.swift; sourceTree = "<group>"; };
+		D59DF2CB1D63777C003F722B /* FileViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileViewController.swift; sourceTree = "<group>"; };
 		D59DF2CC1D63777C003F722B /* TableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		D59DF2CF1D637781003F722B /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E3E826450D74BAE6BB612A81 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
@@ -85,7 +85,7 @@
 				D59DF2C91D637775003F722B /* Fire.swift */,
 				D59DF2B71D637760003F722B /* AppDelegate.swift */,
 				D59DF2CC1D63777C003F722B /* TableViewController.swift */,
-				D59DF2CB1D63777C003F722B /* ObjectViewController.swift */,
+				D59DF2CB1D63777C003F722B /* FileViewController.swift */,
 				D59DF2BE1D637760003F722B /* Assets.xcassets */,
 				D59DF2C01D637760003F722B /* LaunchScreen.storyboard */,
 				D59DF2CF1D637781003F722B /* GoogleService-Info.plist */,
@@ -219,7 +219,7 @@
 				D59DF2CA1D637775003F722B /* Fire.swift in Sources */,
 				D59DF2B81D637760003F722B /* AppDelegate.swift in Sources */,
 				D59DF2CE1D63777C003F722B /* TableViewController.swift in Sources */,
-				D59DF2CD1D63777C003F722B /* ObjectViewController.swift in Sources */,
+				D59DF2CD1D63777C003F722B /* FileViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

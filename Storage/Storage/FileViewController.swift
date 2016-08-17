@@ -8,7 +8,7 @@
 
 import UIKit
 
-class ObjectViewController: UIViewController {
+class FileViewController: UIViewController {
 
 	var textView:UITextView = UITextView()
 	var data:String = ""{
