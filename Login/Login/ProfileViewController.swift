@@ -11,7 +11,7 @@ import Firebase
 
 let NAV_BAR_PADDING :CGFloat = 44 + 20 + 10
 
-class ProfileViewController: UIViewController, UITextFieldDelegate{
+class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate{
 	
 	let profileImageView:UIImageView = UIImageView()
 	let profileImageButton:UIButton = UIButton()
@@ -115,15 +115,15 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		let alert = UIAlertController.init(title: "", message: nil, preferredStyle: .ActionSheet)
 		let action1 = UIAlertAction.init(title: "A", style: .Default) { (action) in
 			self.detail1Button.setTitle("A", forState: .Normal)
-			Fire.shared.updateUserWithKeyAndValue("detail1", value: "A")
+			Fire.shared.updateUserWithKeyAndValue("detail1", value: "A", completionHandler: nil)
 		}
 		let action2 = UIAlertAction.init(title: "B", style: .Default) { (action) in
 			self.detail1Button.setTitle("B", forState: .Normal)
-			Fire.shared.updateUserWithKeyAndValue("detail1", value: "B")
+			Fire.shared.updateUserWithKeyAndValue("detail1", value: "B", completionHandler: nil)
 		}
 		let action3 = UIAlertAction.init(title: "C", style: .Default) { (action) in
 			self.detail1Button.setTitle("C", forState: .Normal)
-			Fire.shared.updateUserWithKeyAndValue("detail1", value: "C")
+			Fire.shared.updateUserWithKeyAndValue("detail1", value: "C", completionHandler: nil)
 		}
 		let cancel = UIAlertAction.init(title: "Cancel", style: .Cancel) { (action) in }
 		alert.addAction(action1)
@@ -138,6 +138,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 		let action1 = UIAlertAction.init(title: "Camera", style: .Default) { (action) in
 		}
 		let action2 = UIAlertAction.init(title: "Photos", style: .Default) { (action) in
+			self.openImagePicker()
 		}
 		let action3 = UIAlertAction.init(title: "Cancel", style: .Cancel) { (action) in }
 		alert.addAction(action1)
@@ -154,14 +155,48 @@ class ProfileViewController: UIViewController, UITextFieldDelegate{
 	
 	func textFieldDidEndEditing(textField: UITextField) {
 		if(textField.isEqual(nameField)){
-			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text!)
+			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text!, completionHandler: nil)
 		}
 		if(textField.isEqual(detail2Field)){
-			Fire.shared.updateUserWithKeyAndValue("detail2", value: textField.text!)
+			Fire.shared.updateUserWithKeyAndValue("detail2", value: textField.text!, completionHandler: nil)
 		}
 	}
 //	override func textFieldDidBeginEditing(textField: UITextField) {
 //		
 //	}
+	
+	
+	
+	func openImagePicker(){
+		let imagePicker = UIImagePickerController()
+		imagePicker.delegate = self
+		imagePicker.allowsEditing = false
+		imagePicker.sourceType = .PhotoLibrary
+		self.navigationController?.presentViewController(imagePicker, animated: true, completion: nil)
+	}
+	
+	func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+		let image = info[UIImagePickerControllerOriginalImage] as! UIImage
+		let data = UIImageJPEGRepresentation(image, 0.5)
+		if(data != nil){
+			Fire.shared.uploadFileAndMakeRecord(data!, fileType: .IMAGE_JPG, description: nil, completionHandler: { (downloadURL) in
+				if(downloadURL != nil){
+					Fire.shared.updateUserWithKeyAndValue("image", value: downloadURL!.absoluteString, completionHandler: { (success) in
+						if(success){
+							Cache.shared.profileImage[Fire.shared.myUID!] = image
+							self.profileImageView.image = image
+						}
+						else{
+							
+						}
+					})
+				}
+			})
+		}
+		if(data == nil){
+			print("data is nil")
+		}
+		self.navigationController?.dismissViewControllerAnimated(true, completion: nil)
+	}
 	
 }

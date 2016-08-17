@@ -9,8 +9,8 @@
 import UIKit
 import Firebase
 
-class Storage {
-	static let shared = Storage()
+class Cache {
+	static let shared = Cache()
 	private init() { }
 	
 	var profileImage : Dictionary<String, UIImage> = Dictionary()
@@ -23,9 +23,9 @@ class Storage {
 extension UIImageView {
 	
 	public func profileImageFromUID(uid: String){
-		if(Storage.shared.profileImage[uid] != nil){
+		if(Cache.shared.profileImage[uid] != nil){
 			print("shortcut, we already have an image")
-			self.image = Storage.shared.profileImage[uid]!
+			self.image = Cache.shared.profileImage[uid]!
 			return
 		}
 		Fire.shared.getUser { (userUID, userData) in
@@ -38,8 +38,8 @@ extension UIImageView {
 						let task = session.dataTaskWithRequest(request, completionHandler: {data, response, error -> Void in
 							dispatch_async(dispatch_get_main_queue()) {
 								if let imageData = data as NSData? {
-									//								print("downloaded success")
-									Storage.shared.profileImage[uid] = UIImage(data: imageData)
+//									print("downloaded success")
+									Cache.shared.profileImage[uid] = UIImage(data: imageData)
 									self.image = UIImage(data: imageData)
 								}
 							}

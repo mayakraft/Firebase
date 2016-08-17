@@ -17,12 +17,9 @@ enum StorageFileType {
 
 func stringForStorageFileType(fileType:StorageFileType) -> String {
 	switch fileType {
-	case .IMAGE_JPG:
-		return "JPG"
-	case .IMAGE_PNG:
-		return "PNG"
-	case .DOCUMENT_PDF:
-		return "PDF"
+	case .IMAGE_JPG:    return "JPG"
+	case .IMAGE_PNG:    return "PNG"
+	case .DOCUMENT_PDF: return "PDF"
 	}
 }
 
@@ -58,11 +55,15 @@ class Fire {
 		}
 	}
 	
-	func uploadFileAndMakeRecord(data:NSData, fileType:StorageFileType, completionHandler: (filename:String?, downloadURL:NSURL?) -> ()) {
-		
+	// specify a UUIDFilename, or it will generate one for you
+	func uploadFileAndMakeRecord(data:NSData, fileType:StorageFileType, UUIDFilename:String?, completionHandler: (filename:String?, downloadURL:NSURL?) -> ()) {
+
 		// prep file info
-		var storagePath:String
 		var filename:String = NSUUID.init().UUIDString
+		if(UUIDFilename != nil){
+			filename = UUIDFilename!
+		}
+		var storagePath:String
 		var databaseDirectory:String
 		switch fileType {
 			case .IMAGE_JPG:
