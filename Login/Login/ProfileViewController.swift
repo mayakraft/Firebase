@@ -193,8 +193,9 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	
 	func updateWithDelay() {
 		// hanging text fields
-		Fire.shared.updateUserWithKeyAndValue("displayName", value: nameField.text!, completionHandler: nil)
-		
+		if let nameText = nameField.text{
+			Fire.shared.updateUserWithKeyAndValue("displayName", value: nameText, completionHandler: nil)
+		}
 		if(updateTimer != nil){
 			updateTimer?.invalidate()
 			updateTimer = nil
