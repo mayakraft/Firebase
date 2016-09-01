@@ -9,7 +9,11 @@
 import UIKit
 import Firebase
 
-let NAV_BAR_PADDING :CGFloat = 44 + 20 + 10
+func statusBarHeight() -> CGFloat {
+	let statusBarSize = UIApplication.sharedApplication().statusBarFrame.size
+	return Swift.min(statusBarSize.width, statusBarSize.height)
+}
+
 
 class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate{
 	
@@ -20,27 +24,26 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	let detail1Button: UIButton = UIButton()
 	let detail2Field: UITextField = UITextField()
 	let signoutButton: UIButton = UIButton()
+	
+	var updateTimer:NSTimer?
+	
+	override func viewDidLoad() {
+		super.viewDidLoad()
+		
+		let lightBlue = UIColor(red:0.33, green:0.65, blue:0.95, alpha:1.00)
+		let darkGray = UIColor(red:0.22, green:0.22, blue:0.22, alpha:1.00)
+		let whiteSmoke = UIColor(red:0.96, green:0.96, blue:0.96, alpha:1.00)
 
-    override func viewDidLoad() {
-        super.viewDidLoad()
-		self.view.backgroundColor = UIColor.init(colorLiteralRed: 0.9, green: 0.9, blue: 0.9, alpha: 1.0)
-
-		// frames
-		let imgSize = self.view.bounds.size.width*0.333
-		profileImageView.frame = CGRectMake(self.view.bounds.size.width*0.5 - imgSize*0.5, NAV_BAR_PADDING, imgSize, imgSize)
-		profileImageButton.frame = profileImageView.frame
-		nameField.frame = CGRectMake(0, NAV_BAR_PADDING + imgSize + 10, self.view.bounds.size.width, 44)
-		emailField.frame = CGRectMake(0, NAV_BAR_PADDING + imgSize + 10*2 + 44, self.view.bounds.size.width, 44)
-		detail1Button.frame = CGRectMake(0, NAV_BAR_PADDING + imgSize + 10*3 + 44*2, self.view.bounds.size.width, 44)
-		detail2Field.frame = CGRectMake(0, NAV_BAR_PADDING + imgSize + 10*4 + 44*3, self.view.bounds.size.width, 44)
-		signoutButton.frame = CGRectMake(0, NAV_BAR_PADDING + imgSize + 10*5 + 44*4, self.view.bounds.size.width, 44)
-
+		self.view.backgroundColor = whiteSmoke
+		
+		self.title = "MY PROFILE"
+		
 		// buttons
 		signoutButton.setTitle("Sign Out", forState: UIControlState.Normal)
 		profileImageButton.addTarget(self, action: #selector(profilePictureButtonHandler), forControlEvents: .TouchUpInside)
 		detail1Button.addTarget(self, action: #selector(detail1ButtonHandler), forControlEvents: UIControlEvents.TouchUpInside)
 		signoutButton.addTarget(self, action: #selector(logOut), forControlEvents: UIControlEvents.TouchUpInside)
-
+		
 		// ui custom
 		nameField.delegate = self
 		emailField.delegate = self
@@ -54,20 +57,24 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		detail1Button.setTitleColor(UIColor.blackColor(), forState: .Normal)
 		detail1Button.titleLabel?.textAlignment = .Center
 		detail2Field.backgroundColor = UIColor.whiteColor()
-		signoutButton.backgroundColor = UIColor.blueColor()
+		signoutButton.backgroundColor = lightBlue
 		nameField.placeholder = "Name"
 		emailField.placeholder = "Email Address"
 		detail2Field.placeholder = "Detail Text"
 		
+		emailField.enabled = false
+		
 		// text field padding
-//		let paddingView = UIView.init(frame: CGRectMake(0, 0, 5, 20))
-//		nameField.leftView = paddingView
-//		emailField.leftView = paddingView
-//		detail2Field.leftView = paddingView
-//		nameField.leftViewMode = UITextFieldViewMode.Always
-//		emailField.leftViewMode = UITextFieldViewMode.Always
-//		detail2Field.leftViewMode = UITextFieldViewMode.Always
-
+		let paddingName = UIView.init(frame: CGRectMake(0, 0, 5, 40))
+		let paddingEmail = UIView.init(frame: CGRectMake(0, 0, 5, 40))
+		let paddingDetail = UIView.init(frame: CGRectMake(0, 0, 5, 40))
+		nameField.leftView = paddingName
+		emailField.leftView = paddingEmail
+		detail2Field.leftView = paddingDetail
+		nameField.leftViewMode = .Always
+		emailField.leftViewMode = .Always
+		detail2Field.leftViewMode = .Always
+		
 		self.view.addSubview(profileImageView)
 		self.view.addSubview(profileImageButton)
 		self.view.addSubview(nameField)
@@ -75,27 +82,47 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		self.view.addSubview(detail1Button)
 		self.view.addSubview(detail2Field)
 		self.view.addSubview(signoutButton)
+	}
+	
+	override func viewWillAppear(animated: Bool) {
+		super.viewWillAppear(animated)
+		
+		let navBarHeight:CGFloat = self.navigationController!.navigationBar.frame.height
+		let statusHeight:CGFloat = statusBarHeight()
+
+		let header = navBarHeight + statusHeight
+		
+		// frames
+		let imgSize:CGFloat = self.view.bounds.size.width * 0.4
+		let imgArea:CGFloat = self.view.bounds.size.width * 0.5
+		profileImageView.frame = CGRectMake(0, 0, imgSize, imgSize)
+		profileImageView.center = CGPointMake(self.view.center.x, header + imgArea*0.5)
+		profileImageView.layer.cornerRadius = imgSize*0.5
+		profileImageButton.frame = profileImageView.frame
+		nameField.frame = CGRectMake(0, header + imgArea + 10, self.view.bounds.size.width, 44)
+		emailField.frame = CGRectMake(0, header + imgArea + 10*2 + 44*1, self.view.bounds.size.width, 44)
+		detail1Button.frame = CGRectMake(0, header + imgArea + 10*3 + 44*2, self.view.bounds.size.width, 44)
+		detail2Field.frame = CGRectMake(0, header + imgArea + 10*4 + 44*3, self.view.bounds.size.width, 44)
+		signoutButton.frame = CGRectMake(0, header + imgArea + 10*5 + 44*4, self.view.bounds.size.width, 44)
 		
 		// populate screen
 		Fire.shared.getUser { (uid, userData) in
-			print("Here's the user data:")
-			print(userData)
-			self.populateUserData(uid!, userData: userData!)
+			if(uid != nil && userData != nil){
+				self.populateUserData(uid!, userData: userData!)
+			}
 		}
-
+		
 		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(textFieldDidChange), name: "UITextFieldTextDidChangeNotification", object: nil)
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
+	}
 	
 	func populateUserData(uid:String, userData:NSDictionary){
 		if(userData["image"] != nil){
 			profileImageView.profileImageFromUID(uid)
-//			profileImageView.imageFromUrl(userData["image"] as! String)
+		} else{
+			// blank profile image
+			profileImageView.image = nil
 		}
+
 		emailField.text = userData["email"] as? String
 		nameField.text = userData["displayName"] as? String
 		detail1Button.setTitle(userData["detail1"] as? String, forState: UIControlState.Normal)
@@ -144,14 +171,42 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		alert.addAction(action1)
 		alert.addAction(action2)
 		alert.addAction(action3)
+		
+		if let popoverController = alert.popoverPresentationController {
+			popoverController.sourceView = sender
+			popoverController.sourceRect = sender.bounds
+		}
 		self.presentViewController(alert, animated: true, completion: nil)
 	}
 	
-	func textFieldDidChange(notif: NSNotification) {
-		let textField = notif.object! as! UITextField
-		let string = textField.text
-		print(string)
+	func textFieldShouldReturn(textField: UITextField) -> Bool {
+		self.view.endEditing(true)
+		return false
 	}
+	func textFieldDidChange(notif: NSNotification) {
+		if(updateTimer != nil){
+			updateTimer?.invalidate()
+			updateTimer = nil
+		}
+		updateTimer = NSTimer.scheduledTimerWithTimeInterval(1.0, target: self, selector: #selector(updateWithDelay), userInfo: nil, repeats: false)
+	}
+	
+	func updateWithDelay() {
+		// hanging text fields
+		Fire.shared.updateUserWithKeyAndValue("displayName", value: nameField.text!, completionHandler: nil)
+		
+		if(updateTimer != nil){
+			updateTimer?.invalidate()
+			updateTimer = nil
+		}
+	}
+	
+	deinit{
+		if(updateTimer != nil){
+			updateWithDelay()
+		}
+	}
+	
 	
 	func textFieldDidEndEditing(textField: UITextField) {
 		if(textField.isEqual(nameField)){
@@ -161,11 +216,6 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 			Fire.shared.updateUserWithKeyAndValue("detail2", value: textField.text!, completionHandler: nil)
 		}
 	}
-//	override func textFieldDidBeginEditing(textField: UITextField) {
-//		
-//	}
-	
-	
 	
 	func openImagePicker(){
 		let imagePicker = UIImagePickerController()
@@ -194,7 +244,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 			})
 		}
 		if(data == nil){
-			print("data is nil")
+			print("image picker data is nil")
 		}
 		self.navigationController?.dismissViewControllerAnimated(true, completion: nil)
 	}

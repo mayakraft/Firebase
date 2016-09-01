@@ -14,27 +14,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 	var window: UIWindow?
 	
-	func launchAppWithLoginScreen(){
+	func launchApp(requireLogin:Bool){
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.mainScreen().bounds
 		let loginVC : LoginViewController = LoginViewController()
+		if(FIRAuth.auth()?.currentUser != nil){
+			loginVC.emailField.text = FIRAuth.auth()?.currentUser?.email
+		}
 		self.window?.rootViewController = loginVC
 		self.window?.makeKeyAndVisible()
+		
+		if(!requireLogin){
+			loginVC.presentViewController(MasterNavigationController(), animated: false, completion: nil)
+		}
 	}
 	
-	func launchAppWithProfileScreen(){
-		self.window = UIWindow()
-		self.window?.frame = UIScreen.mainScreen().bounds
-		let loginVC : LoginViewController = LoginViewController()
-		loginVC.emailField.text = FIRAuth.auth()?.currentUser?.email
-		self.window?.rootViewController = loginVC
-		self.window?.makeKeyAndVisible()
-		loginVC.presentViewController(MasterNavigationController(), animated: false, completion: nil)
-	}
-
 	func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
 		// Override point for customization after application launch.
-		
+
 		FIRApp.configure()
 		
 		Fire.shared
@@ -42,10 +39,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		
 		if (FIRAuth.auth()?.currentUser) != nil {
 			// User is signed in.
-			launchAppWithProfileScreen()
+			launchApp(false)
 		} else {
 			// No user is signed in.
-			launchAppWithLoginScreen()
+			launchApp(true)
 		}
 		return true
 	}

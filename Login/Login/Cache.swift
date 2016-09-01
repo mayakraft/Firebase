@@ -1,5 +1,5 @@
 //
-//  LocalCache.swift
+//  Cache.swift
 //  Login
 //
 //  Created by Robby on 8/8/16.
@@ -13,9 +13,31 @@ class Cache {
 	static let shared = Cache()
 	private init() { }
 	
+	// Key is userUID
 	var profileImage : Dictionary<String, UIImage> = Dictionary()
 	
+	// Key is filename in the images/ folder in the bucket
+	var storageBucket : Dictionary<String, UIImage> = Dictionary()
 	
+	func imageFromStorageBucket(filename: String, completionHandler: (image:UIImage?, didRequireDownload:Bool) -> ()) {
+		if(storageBucket[filename] != nil){
+			//TODO: if image on database has changed, we need a force-refresh command
+			completionHandler(image: Cache.shared.storageBucket[filename]!, didRequireDownload: false)
+			return
+		}
+		
+		let storage = FIRStorage.storage().reference()
+		let imageRef = storage.child("images/" + filename)
+		
+		imageRef.dataWithMaxSize(3 * 1024 * 1024) { (data, error) in
+			if(data != nil){
+				if let imageData = data as NSData? {
+					Cache.shared.storageBucket[filename] = UIImage(data: imageData)
+					completionHandler(image: Cache.shared.storageBucket[filename]!, didRequireDownload: true)
+				}
+			}
+		}
+	}
 }
 
 
@@ -69,4 +91,31 @@ extension UIImageView {
 			task.resume()
 		}
 	}
+	
+	
+	
+	public func imageFromStorageBucket(filename: String){
+		if(Cache.shared.storageBucket[filename] != nil){
+			print("shortcut, we already have an image")
+			self.image = Cache.shared.storageBucket[filename]!
+			return
+		}
+
+		let storage = FIRStorage.storage().reference()
+		let imageRef = storage.child("images/" + filename)
+
+		imageRef.dataWithMaxSize(3 * 1024 * 1024) { (data, error) in
+			print("we have data!")
+			if(data != nil){
+//				dispatch_async(dispatch_get_main_queue()) {
+					if let imageData = data as NSData? {
+						print("setting an image")
+						Cache.shared.storageBucket[filename] = UIImage(data: imageData)
+						self.image = UIImage(data: imageData)
+					}
+//				}
+			}
+		}
+	}
+
 }

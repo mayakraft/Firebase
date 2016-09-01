@@ -1,5 +1,5 @@
 //
-//  FireUser.swift
+//  Fire.swift
 //  Login
 //
 //  Created by Robby on 8/6/16.
@@ -86,6 +86,13 @@ class Fire {
 		}
 	}
 	
+	func newUniqueObjectAtPath(childURL:String, object:AnyObject, completionHandler: (() -> ())?) {
+		database.child(childURL).childByAutoId().setValue(object) { (error, ref) in
+			if(completionHandler != nil){
+				completionHandler!()
+			}
+		}
+	}
 
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -98,10 +105,14 @@ class Fire {
 			if snapshot.value is NSNull {
 				completionHandler(false)
 			} else {
-				completionHandler(true)
+				let userDict:[String:AnyObject] = snapshot.value as! [String:AnyObject]
+				if(userDict["createdAt"] != nil){
+					completionHandler(true)
+				}
+				else{
+					completionHandler(false)
+				}
 			}
-//			print("all the users:")
-//			print(everything)
 		}
 	}
 	
@@ -123,11 +134,11 @@ class Fire {
 	
 	func createUserInDatabase(user:FIRUser){
 		let emailString:String = user.email!
-		let newUser = [
+		let newUser:[String:AnyObject] = [
 			"email": emailString,
 			"createdAt": NSDate.init().timeIntervalSince1970
 		]
-		database.child("users").child(user.uid).setValue(newUser)
+		database.child("users").child(user.uid).updateChildValues(newUser)
 		print("added \(emailString) to the database")
 	}
 	
