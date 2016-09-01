@@ -163,9 +163,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	func profilePictureButtonHandler(sender:UIButton){
 		let alert = UIAlertController.init(title: "Change Profile Image", message: nil, preferredStyle: .ActionSheet)
 		let action1 = UIAlertAction.init(title: "Camera", style: .Default) { (action) in
+			self.openImagePicker(.Camera)
 		}
 		let action2 = UIAlertAction.init(title: "Photos", style: .Default) { (action) in
-			self.openImagePicker()
+			self.openImagePicker(.PhotoLibrary)
 		}
 		let action3 = UIAlertAction.init(title: "Cancel", style: .Cancel) { (action) in }
 		alert.addAction(action1)
@@ -218,11 +219,11 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		}
 	}
 	
-	func openImagePicker(){
+	func openImagePicker(sourceType:UIImagePickerControllerSourceType) {
 		let imagePicker = UIImagePickerController()
 		imagePicker.delegate = self
 		imagePicker.allowsEditing = false
-		imagePicker.sourceType = .PhotoLibrary
+		imagePicker.sourceType = sourceType
 		self.navigationController?.presentViewController(imagePicker, animated: true, completion: nil)
 	}
 	
