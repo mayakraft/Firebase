@@ -112,8 +112,8 @@ class TableViewController: UITableViewController {
 		// if this element is the leaf (last level down)
 		if(nextObject is String || nextObject is Int || nextObject is Float || nextObject is Bool){
 			let vc: ObjectViewController = ObjectViewController()
-			vc.data = String(nextObject!)
-			vc.title = nextTitle
+			vc.data = nextObject
+//			vc.title = nextTitle
 			self.navigationController?.pushViewController(vc, animated: true)
 		}
 		// if there are more levels below
