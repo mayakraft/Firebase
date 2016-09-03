@@ -1,5 +1,13 @@
-* make sure to install cocoa pods `pod install`
-* make sure to copy in your `GoogleService-Info.plist` with your Firebase account info
+# SETUP
+
+1. Install Cocoa Pods:
+   * in command line navigate to the directory with the .xcodeproj file, type `pod install`
+   * from now on, open the .xcworkspace file
+2. Copy in your `GoogleService-Info.plist` with your Firebase account info. Get it here:
+
+![animation](https://raw.github.com/robbykraft/Firebase/master/readme/config1.png)
+
+![animation](https://raw.github.com/robbykraft/Firebase/master/readme/config2.png)
 
 see [Firebase Getting Started Documentation](https://firebase.google.com/docs/ios/setup) sections __Add Firebase to your app__ and __Add the SDK__
 
