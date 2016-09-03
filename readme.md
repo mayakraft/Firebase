@@ -6,7 +6,9 @@ Login portal: create a personal account / login, logs you into your profile page
 
 # Browse
 
-Browse your entire database in a simple UITableView. Firebase sometimes delivers data as an `Array` or `Dictionary`, this handles each case.
+Browse the entire database in a simple UITableView. Firebase sometimes delivers JSON objects as an `Array` or `Dictionary`, this handles each case, and includes object type detection.
+
+![animation](https://raw.github.com/robbykraft/Firebase/master/readme/browse.gif)
 
 # Storage
 
