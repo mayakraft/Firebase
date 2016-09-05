@@ -90,34 +90,27 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 		loginWithCredentials(emailField.text!, pass: passwordField.text!)
 	}
 	
-	func loginWithCredentials(username: String, pass: String){
+	func loginWithCredentials(username: String, pass:String){
 		FIRAuth.auth()?.signInWithEmail(username, password: pass, completion: { (user, error) in
 			if(error == nil){
-				self.presentViewController(MasterNavigationController(), animated: true, completion: nil)
-			}
-			else if((error) != nil){
-				let alert = UIAlertController(title: "", message: "Account \(username) doesn't yet exist - create it?\n\n(or if account does exist, password is incorrect)", preferredStyle: .Alert)
-				let action1: UIAlertAction = UIAlertAction.init(title: "Create Account", style: UIAlertActionStyle.Default, handler: { (action) in
-
-					FIRAuth.auth()?.createUserWithEmail(username, password:pass, completion: { (user, error) in
-						if (error != nil){
-							print(error)
-						}
-						else{
-							self.presentViewController(MasterNavigationController(), animated: true, completion: nil)
-						}
-					})
-
+				// Success, logging in with email
+				self.presentViewController(MasterNavigationController(), animated: true, completion: nil);
+			} else{
+				// 2 POSSIBILITIES: (1) Account doesn't exist  (2) Account exists, password was incorrect
+				FIRAuth.auth()?.createUserWithEmail(username, password: pass, completion: { (user, error) in
+					if(error == nil){
+						// Success, created account, logging in now
+						self.presentViewController(MasterNavigationController(), animated: true, completion: nil)
+					} else{
+						let errorMessage = "Account with \(username) exists, but password is incorrect"
+						let alert = UIAlertController(title: errorMessage, message: nil, preferredStyle: .Alert)
+						let action1 = UIAlertAction.init(title: "Try Again", style: .Default, handler: nil)
+						alert.addAction(action1)
+						self.presentViewController(alert, animated: true, completion: nil)
+					}
 				})
-				let action2: UIAlertAction = UIAlertAction.init(title: "Cancel", style: UIAlertActionStyle.Cancel, handler: { (action) in
-				})
-				
-				alert.addAction(action1)
-				alert.addAction(action2)
-				self.presentViewController(alert, animated: true, completion: nil)
 			}
 		})
 	}
-	
 }
 

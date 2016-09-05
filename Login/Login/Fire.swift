@@ -1,10 +1,6 @@
-//
 //  Fire.swift
-//  Login
-//
 //  Created by Robby on 8/6/16.
 //  Copyright © 2016 Robby. All rights reserved.
-//
 
 /////////////////////////////////////////////////////////////////////////
 // THREE PARTS: STORAGE, USER, DATABASE
@@ -35,8 +31,8 @@ class Fire {
 	let database: FIRDatabaseReference = FIRDatabase.database().reference()
 	let storage = FIRStorage.storage().reference()
 	
-	// snapshot from the last call to "loadData"
-	var data: AnyObject?
+	// this is up to you to manage - but cache database calls here if you want.
+	var databaseCache: AnyObject?
 	
 	// can monitor, pause, resume the current upload task
 	var currentUpload:FIRStorageUploadTask?
@@ -80,7 +76,6 @@ class Fire {
 			if snapshot.value is NSNull {
 				completionHandler(nil)
 			} else {
-				self.data = snapshot.value
 				completionHandler(snapshot.value)
 			}
 		}
@@ -204,10 +199,12 @@ class Fire {
 				if(description != nil){
 					descriptionString = description!
 				}
-				let entry:Dictionary = ["file":storagePath,
-				                        "type":stringForStorageFileType(fileType),
-				                        "description":descriptionString,
-				                        "url":downloadURL.absoluteString]
+				let entry:[String:AnyObject] = ["filename":filename,
+				                                "path":storagePath,
+				                                "type":stringForStorageFileType(fileType),
+				                                "size":data.length,
+				                                "description":descriptionString,
+				                                "url":downloadURL.absoluteString]
 				self.database.child(databaseDirectory).updateChildValues([key:entry]) { (error, ref) in
 					completionHandler(downloadURL: downloadURL)
 				}

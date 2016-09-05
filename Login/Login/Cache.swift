@@ -1,13 +1,23 @@
-//
 //  Cache.swift
-//  Login
-//
 //  Created by Robby on 8/8/16.
 //  Copyright © 2016 Robby. All rights reserved.
+
+
+// a couple things are going on here:
+// firebase storage doesn't let you ask for the contents of its folder
+// this class helps out:
+//
+// 1) everytime you save an image, it creates an entry for it in your database
+//    now you are manually maintaining a list of the contents of your firebase storage
+//      (unless you upload by some other means)
+//
 //
 
 import UIKit
 import Firebase
+
+// restriction on image file size
+let IMG_SIZE_MAX:Int64 = 15  // megabytes
 
 class Cache {
 	static let shared = Cache()
@@ -29,7 +39,7 @@ class Cache {
 		let storage = FIRStorage.storage().reference()
 		let imageRef = storage.child("images/" + filename)
 		
-		imageRef.dataWithMaxSize(3 * 1024 * 1024) { (data, error) in
+		imageRef.dataWithMaxSize(IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
 			if(data != nil){
 				if let imageData = data as NSData? {
 					Cache.shared.storageBucket[filename] = UIImage(data: imageData)
@@ -44,9 +54,31 @@ class Cache {
 
 extension UIImageView {
 	
-	public func profileImageFromUID(uid: String){
+	// UID can be found under your firebase database /files/images/
+	public func imageFromFirebaseStorage(uid: String){
+		Fire.shared.loadData("/files/images/\(uid)") { (data) in
+			if let imgMetaData = data as! [String:AnyObject]?{
+				if let urlString = imgMetaData["url"]{
+					if let url = NSURL(string: urlString as! String){
+						let request = NSMutableURLRequest(URL: url)
+						let session = NSURLSession.sharedSession()
+						let task = session.dataTaskWithRequest(request, completionHandler: {data, response, error -> Void in
+							dispatch_async(dispatch_get_main_queue()) {
+								if let imageData = data as NSData? {
+									Cache.shared.profileImage[uid] = UIImage(data: imageData)
+									self.image = UIImage(data: imageData)
+								}
+							}
+						})
+						task.resume()
+					}
+				}
+			}
+		}
+	}
+	
+	public func profileImageFromUserUID(uid: String){
 		if(Cache.shared.profileImage[uid] != nil){
-			print("shortcut, we already have an image")
 			self.image = Cache.shared.profileImage[uid]!
 			return
 		}
@@ -54,13 +86,11 @@ extension UIImageView {
 			if(userData != nil){
 				if let urlString = userData!["image"]{
 					if let url = NSURL(string: urlString as! String){
-//						print("downloaded request \(url)")
 						let request = NSMutableURLRequest(URL: url)
 						let session = NSURLSession.sharedSession()
 						let task = session.dataTaskWithRequest(request, completionHandler: {data, response, error -> Void in
 							dispatch_async(dispatch_get_main_queue()) {
 								if let imageData = data as NSData? {
-//									print("downloaded success")
 									Cache.shared.profileImage[uid] = UIImage(data: imageData)
 									self.image = UIImage(data: imageData)
 								}
@@ -70,7 +100,7 @@ extension UIImageView {
 					}
 				}
 				else{
-					print("user exists, but has no image")
+//					print("user exists, but has no image")
 					return
 				}
 			}
@@ -92,8 +122,6 @@ extension UIImageView {
 		}
 	}
 	
-	
-	
 	public func imageFromStorageBucket(filename: String){
 		if(Cache.shared.storageBucket[filename] != nil){
 			print("shortcut, we already have an image")
@@ -104,16 +132,14 @@ extension UIImageView {
 		let storage = FIRStorage.storage().reference()
 		let imageRef = storage.child("images/" + filename)
 
-		imageRef.dataWithMaxSize(3 * 1024 * 1024) { (data, error) in
+		imageRef.dataWithMaxSize(IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
 			print("we have data!")
 			if(data != nil){
-//				dispatch_async(dispatch_get_main_queue()) {
-					if let imageData = data as NSData? {
-						print("setting an image")
-						Cache.shared.storageBucket[filename] = UIImage(data: imageData)
-						self.image = UIImage(data: imageData)
-					}
-//				}
+				if let imageData = data as NSData? {
+					print("setting an image")
+					Cache.shared.storageBucket[filename] = UIImage(data: imageData)
+					self.image = UIImage(data: imageData)
+				}
 			}
 		}
 	}
