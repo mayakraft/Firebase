@@ -48,7 +48,8 @@ class Fire {
 				self.checkIfUserExists(user!, completionHandler: { (exists) in
 					if(exists){ }
 					else{
-						self.createUserInDatabase(user!)
+						self.createNewUserEntry(user!, completionHandler: { (success) in
+						})
 					}
 				})
 			} else {
@@ -95,6 +96,22 @@ class Fire {
 	//
 	//  USER
 	
+//	func user() -> FIRUser {
+//		return (FIRAuth.auth()?.currentUser)!
+//	}
+	
+	func getUser(completionHandler: (String?, [String:AnyObject]?) -> ()) {
+		let user = FIRAuth.auth()?.currentUser
+		database.child("users").child(user!.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
+			if snapshot.value is NSNull {
+				completionHandler(nil, nil)
+			} else {
+				let userData:[String:AnyObject]? = snapshot.value as! [String:AnyObject]?
+				completionHandler(user!.uid, userData)
+			}
+		}
+	}
+	
 	func checkIfUserExists(user: FIRUser, completionHandler: (Bool) -> ()) {
 		database.child("users").child(user.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
 			if snapshot.value is NSNull {
@@ -103,55 +120,54 @@ class Fire {
 				let userDict:[String:AnyObject] = snapshot.value as! [String:AnyObject]
 				if(userDict["createdAt"] != nil){
 					completionHandler(true)
-				}
-				else{
+				} else{
 					completionHandler(false)
 				}
 			}
 		}
 	}
-	
-	func updateUserWithKeyAndValue(key:String, value:AnyObject, completionHandler: ((success:Bool) -> ())? ) {
-		print("saving \(value) into \(key)")
-		let user = FIRAuth.auth()?.currentUser
-		database.child("users").child(user!.uid).updateChildValues([key:value]) { (error, ref) in
-			if (error == nil){
-				if(completionHandler != nil){
-					completionHandler!(success: true)
-				}
-			} else{
-				if(completionHandler != nil){
-					completionHandler!(success: false)
-				}
-			}
-		}
-	}
-	
-	func createUserInDatabase(user:FIRUser){
+
+	func createNewUserEntry(user:FIRUser, completionHandler: ((success:Bool) -> ())? ) {
+		// copy user data over from AUTH
 		let emailString:String = user.email!
 		let newUser:[String:AnyObject] = [
+//			"name"     : user.displayName! ,
+//			"image"    : user.photoURL!,
 			"email": emailString,
 			"createdAt": NSDate.init().timeIntervalSince1970
 		]
-		database.child("users").child(user.uid).updateChildValues(newUser)
-		print("added \(emailString) to the database")
+		database.child("users").child(user.uid).updateChildValues(newUser) { (error, ref) in
+			if error == nil{
+				if(completionHandler != nil){
+					print("added \(emailString) to the database")
+					completionHandler!(success: true)
+				}
+			} else{
+				// error creating user
+				completionHandler!(success: false)
+			}
+		}
 	}
-	
-	func getUser(completionHandler: (String?, NSDictionary?) -> ()) {
-		let user = FIRAuth.auth()?.currentUser
-		database.child("users").child(user!.uid).observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
-			if snapshot.value is NSNull {
-				completionHandler(nil, nil)
-			} else {
-				let userData:NSDictionary? = snapshot.value as! NSDictionary?
-				completionHandler(user!.uid, userData)
+
+	func updateUserWithKeyAndValue(key:String, value:AnyObject, completionHandler: ((success:Bool) -> ())? ) {
+		if let user = FIRAuth.auth()?.currentUser{
+			database.child("users").child(user.uid).updateChildValues([key:value]) { (error, ref) in
+				if (error == nil){
+					print("saving \(value) into \(key)")
+					if(completionHandler != nil){
+						completionHandler!(success: true)
+					}
+				} else{
+					if(completionHandler != nil){
+						completionHandler!(success: false)
+					}
+				}
 			}
 		}
 	}
 	
-	func user() -> FIRUser {
-		return (FIRAuth.auth()?.currentUser)!
-	}
+	
+//	Error: Error Domain=NSURLErrorDomain Code=-1009 "The Internet connection appears to be offline."
 	
 	
 	

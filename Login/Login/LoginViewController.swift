@@ -32,8 +32,8 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 		emailField.placeholder = "Email Address"
 		passwordField.placeholder = "Password"
 
-		let paddingEmail = UIView.init(frame: CGRectMake(0, 0, 5, 20))
-		let paddingPassword = UIView.init(frame: CGRectMake(0, 0, 5, 20))
+		let paddingEmail = UIView.init(frame: CGRectMake(0, 0, 10, 20))
+		let paddingPassword = UIView.init(frame: CGRectMake(0, 0, 10, 20))
 		emailField.leftView = paddingEmail
 		passwordField.leftView = paddingPassword
 		emailField.leftViewMode = .Always
@@ -48,42 +48,18 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
 		self.view.addSubview(loginButton)
 	}
+	
 	func textFieldShouldReturn(textField: UITextField) -> Bool {
 		self.view.endEditing(true)
 		return false
 	}
+	
 	override func viewWillAppear(animated: Bool) {
 		super.viewWillAppear(animated)
 
 		emailField.frame = CGRectMake(0, self.view.bounds.size.height * 0.5 - 52 - 20, self.view.bounds.size.width, 52)
 		passwordField.frame = CGRectMake(0, self.view.bounds.size.height * 0.5, self.view.bounds.size.width, 52)
 		loginButton.frame = CGRectMake(0, self.view.bounds.size.height * 0.5 + 52 + 20, self.view.bounds.size.width, 44)
-	}
-	
-	func copyUserFromAuth(){
-		if let user = FIRAuth.auth()?.currentUser {
-			let name:NSString = user.displayName!
-			let email:NSString = user.email!
-			let photoUrl:NSURL = user.photoURL!
-			let uid = user.uid;
-			
-			let ref = FIRDatabase.database().reference()
-			let key = uid
-			
-			let userDict:NSDictionary = [ "name"    : name ,
-			                              "email"   : email,
-			                              "photoUrl"    : photoUrl]
-			
-			let childUpdates = ["/users/\(key)": userDict]
-			ref.updateChildValues(childUpdates, withCompletionBlock: { (error, ref) -> Void in
-				// now users exist in the database
-			})
-		}
-	}
-
-	override func didReceiveMemoryWarning() {
-		super.didReceiveMemoryWarning()
-		// Dispose of any resources that can be recreated.
 	}
 	
 	func buttonHandler(){
@@ -100,12 +76,31 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 				FIRAuth.auth()?.createUserWithEmail(username, password: pass, completion: { (user, error) in
 					if(error == nil){
 						// Success, created account, logging in now
-						self.presentViewController(MasterNavigationController(), animated: true, completion: nil)
+						Fire.shared.createNewUserEntry(user!, completionHandler: { (success) in
+							self.presentViewController(MasterNavigationController(), animated: true, completion: nil)
+						})
 					} else{
-						let errorMessage = "Account with \(username) exists, but password is incorrect"
-						let alert = UIAlertController(title: errorMessage, message: nil, preferredStyle: .Alert)
+						let errorMessage = "Account exists but password is incorrect"
+						let alert = UIAlertController(title: username, message: errorMessage, preferredStyle: .Alert)
 						let action1 = UIAlertAction.init(title: "Try Again", style: .Default, handler: nil)
+						let action2 = UIAlertAction.init(title: "Send a password-reset email", style: .Destructive, handler: { (action) in
+							FIRAuth.auth()?.sendPasswordResetWithEmail(username) { error in
+								if error == nil{
+									// Password reset email sent.
+									let alert = UIAlertController(title: "Email Sent", message: nil, preferredStyle: .Alert)
+									let action1 = UIAlertAction.init(title: "Okay", style: .Default, handler: nil)
+									alert.addAction(action1)
+									self.presentViewController(alert, animated: true, completion: nil)
+								} else{
+									let alert = UIAlertController(title: "Error sending email", message: error!.description, preferredStyle: .Alert)
+									let action1 = UIAlertAction.init(title: "Okay", style: .Default, handler: nil)
+									alert.addAction(action1)
+									self.presentViewController(alert, animated: true, completion: nil)
+								}
+							}
+						})
 						alert.addAction(action1)
+						alert.addAction(action2)
 						self.presentViewController(alert, animated: true, completion: nil)
 					}
 				})

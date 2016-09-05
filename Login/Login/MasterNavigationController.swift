@@ -29,22 +29,7 @@ class MasterNavigationController: UINavigationController {
 		initCustom()
 	}
 	
-	
 	func initCustom(){
-		let profileVC : ProfileViewController = ProfileViewController()
-		profileVC.title = FIRAuth.auth()?.currentUser?.email
-		self.viewControllers = [profileVC]
+		self.viewControllers = [ProfileViewController()]
 	}
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
 }

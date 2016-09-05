@@ -36,10 +36,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	let nameField: UITextField = UITextField()
 	let emailField: UITextField = UITextField()
 	let creationDateField: UITextField = UITextField()
-	let detail2Field: UITextField = UITextField()
+	let detailField: UITextField = UITextField()
 	let signoutButton: UIButton = UIButton()
 	
-	var updateTimer:NSTimer?
+	var updateTimer:NSTimer?  // live updates to profile entries, prevents updating too frequently
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -61,19 +61,19 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		nameField.delegate = self
 		emailField.delegate = self
 		creationDateField.delegate = self
-		detail2Field.delegate = self
+		detailField.delegate = self
 		profileImageView.contentMode = .ScaleAspectFill
 		profileImageView.backgroundColor = UIColor.whiteColor()
 		profileImageView.clipsToBounds = true
 		nameField.backgroundColor = UIColor.whiteColor()
 		emailField.backgroundColor = UIColor.whiteColor()
 		creationDateField.backgroundColor = UIColor.whiteColor()
-		detail2Field.backgroundColor = UIColor.whiteColor()
+		detailField.backgroundColor = UIColor.whiteColor()
 		signoutButton.backgroundColor = lightBlue
 		nameField.placeholder = "Name"
 		emailField.placeholder = "Email Address"
 		creationDateField.placeholder = "Creation Date"
-		detail2Field.placeholder = "Detail Text"
+		detailField.placeholder = "Detail Text"
 		
 		emailField.enabled = false
 		creationDateField.enabled = false
@@ -81,25 +81,25 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		creationDateField.textColor = gray
 		
 		// text field padding
-		let paddingName = UIView.init(frame: CGRectMake(0, 0, 5, 40))
-		let paddingEmail = UIView.init(frame: CGRectMake(0, 0, 5, 40))
-		let paddingCreationDate = UIView.init(frame: CGRectMake(0, 0, 5, 40))
-		let paddingDetail = UIView.init(frame: CGRectMake(0, 0, 5, 40))
+		let paddingName = UIView.init(frame: CGRectMake(0, 0, 10, 40))
+		let paddingEmail = UIView.init(frame: CGRectMake(0, 0, 10, 40))
+		let paddingCreationDate = UIView.init(frame: CGRectMake(0, 0, 10, 40))
+		let paddingDetail = UIView.init(frame: CGRectMake(0, 0, 10, 40))
 		nameField.leftView = paddingName
 		emailField.leftView = paddingEmail
 		creationDateField.leftView = paddingCreationDate
-		detail2Field.leftView = paddingDetail
+		detailField.leftView = paddingDetail
 		nameField.leftViewMode = .Always
 		emailField.leftViewMode = .Always
 		creationDateField.leftViewMode = .Always
-		detail2Field.leftViewMode = .Always
+		detailField.leftViewMode = .Always
 		
 		self.view.addSubview(profileImageView)
 		self.view.addSubview(profileImageButton)
 		self.view.addSubview(nameField)
 		self.view.addSubview(emailField)
 		self.view.addSubview(creationDateField)
-		self.view.addSubview(detail2Field)
+		self.view.addSubview(detailField)
 		self.view.addSubview(signoutButton)
 	}
 	
@@ -121,7 +121,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		nameField.frame = CGRectMake(0, header + imgArea + 10, self.view.bounds.size.width, 44)
 		emailField.frame = CGRectMake(0, header + imgArea + 10*2 + 44*1, self.view.bounds.size.width, 44)
 		creationDateField.frame = CGRectMake(0, header + imgArea + 10*3 + 44*2, self.view.bounds.size.width, 44)
-		detail2Field.frame = CGRectMake(0, header + imgArea + 10*4 + 44*3, self.view.bounds.size.width, 44)
+		detailField.frame = CGRectMake(0, header + imgArea + 10*4 + 44*3, self.view.bounds.size.width, 44)
 		signoutButton.frame = CGRectMake(0, header + imgArea + 10*5 + 44*4, self.view.bounds.size.width, 44)
 		
 		// populate screen
@@ -134,7 +134,13 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(textFieldDidChange), name: "UITextFieldTextDidChangeNotification", object: nil)
 	}
 	
-	func populateUserData(uid:String, userData:NSDictionary){
+	deinit{
+		if(updateTimer != nil){
+			updateWithDelay()
+		}
+	}
+	
+	func populateUserData(uid:String, userData:[String:AnyObject]){
 		if(userData["image"] != nil){
 			profileImageView.profileImageFromUserUID(uid)
 		} else{
@@ -148,7 +154,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		emailField.text = userData["email"] as? String
 		nameField.text = userData["displayName"] as? String
 		creationDateField.text = dateString + " " + timeString
-		detail2Field.text = userData["detail2"] as? String
+		detailField.text = userData["detail"] as? String
 	}
 	
 	func logOut(){
@@ -193,9 +199,12 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	}
 	
 	func updateWithDelay() {
-		// hanging text fields
+		// TODO: list all UITextFields here
 		if let nameText = nameField.text{
 			Fire.shared.updateUserWithKeyAndValue("displayName", value: nameText, completionHandler: nil)
+		}
+		if let detailText = detailField.text{
+			Fire.shared.updateUserWithKeyAndValue("detail", value: detailText, completionHandler: nil)
 		}
 		if(updateTimer != nil){
 			updateTimer?.invalidate()
@@ -203,19 +212,14 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		}
 	}
 	
-	deinit{
-		if(updateTimer != nil){
-			updateWithDelay()
-		}
-	}
-	
 	
 	func textFieldDidEndEditing(textField: UITextField) {
+		// TODO: list all UITextFields here
 		if(textField.isEqual(nameField)){
 			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text!, completionHandler: nil)
 		}
-		if(textField.isEqual(detail2Field)){
-			Fire.shared.updateUserWithKeyAndValue("detail2", value: textField.text!, completionHandler: nil)
+		if(textField.isEqual(detailField)){
+			Fire.shared.updateUserWithKeyAndValue("detail", value: textField.text!, completionHandler: nil)
 		}
 	}
 	
