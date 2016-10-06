@@ -16,22 +16,22 @@ class Fire {
 	
 	// snapshot from the last call to "loadData"
 	var data: AnyObject?
-
+	
 	private init() { }
 	
 	// childURL = nil returns the root of the database
 	// childURL can contain multiple subdirectories separated with a slash: "one/two/three"
-	func loadData(childURL:String?, completionHandler: (AnyObject?) -> ()) {
-		var reference = database
+	func loadData(childURL:String?, completionHandler: @escaping (AnyObject?) -> ()) {
+		var reference:FIRDatabaseReference = database
 		if(childURL != nil){
 			reference = database.child(childURL!)
 		}
-		reference.observeSingleEventOfType(.Value) { (snapshot: FIRDataSnapshot) in
+		reference.observeSingleEvent(of: .value) { (snapshot:FIRDataSnapshot) in
 			if snapshot.value is NSNull {
 				completionHandler(nil)
 			} else {
-				self.data = snapshot.value
-				completionHandler(snapshot.value)
+				self.data = snapshot.value as AnyObject?
+				completionHandler(snapshot.value as AnyObject?)
 			}
 		}
 	}

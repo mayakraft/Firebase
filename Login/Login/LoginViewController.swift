@@ -22,9 +22,9 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 		let whiteSmoke = UIColor(red:0.96, green:0.96, blue:0.96, alpha:1.00)
 
 		self.view.backgroundColor = whiteSmoke
-		emailField.backgroundColor = UIColor.whiteColor()
-		passwordField.backgroundColor = UIColor.whiteColor()
-		passwordField.secureTextEntry = true
+		emailField.backgroundColor = UIColor.white
+		passwordField.backgroundColor = UIColor.white
+		passwordField.isSecureTextEntry = true
 		
 		emailField.delegate = self
 		passwordField.delegate = self
@@ -32,76 +32,76 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 		emailField.placeholder = "Email Address"
 		passwordField.placeholder = "Password"
 
-		let paddingEmail = UIView.init(frame: CGRectMake(0, 0, 10, 20))
-		let paddingPassword = UIView.init(frame: CGRectMake(0, 0, 10, 20))
+		let paddingEmail = UIView.init(frame: CGRect(x: 0, y: 0, width: 10, height: 20))
+		let paddingPassword = UIView.init(frame: CGRect(x: 0, y: 0, width: 10, height: 20))
 		emailField.leftView = paddingEmail
 		passwordField.leftView = paddingPassword
-		emailField.leftViewMode = .Always
-		passwordField.leftViewMode = .Always
+		emailField.leftViewMode = .always
+		passwordField.leftViewMode = .always
 
 		self.view.addSubview(emailField)
 		self.view.addSubview(passwordField)
 
-		loginButton.setTitle("Login / Create Account", forState: UIControlState.Normal)
-		loginButton.addTarget(self, action: #selector(buttonHandler), forControlEvents: UIControlEvents.TouchUpInside)
+		loginButton.setTitle("Login / Create Account", for: UIControlState())
+		loginButton.addTarget(self, action: #selector(buttonHandler), for: UIControlEvents.touchUpInside)
 		loginButton.backgroundColor = lightBlue
 
 		self.view.addSubview(loginButton)
 	}
 	
-	func textFieldShouldReturn(textField: UITextField) -> Bool {
+	func textFieldShouldReturn(_ textField: UITextField) -> Bool {
 		self.view.endEditing(true)
 		return false
 	}
 	
-	override func viewWillAppear(animated: Bool) {
+	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
 
-		emailField.frame = CGRectMake(0, self.view.bounds.size.height * 0.5 - 52 - 20, self.view.bounds.size.width, 52)
-		passwordField.frame = CGRectMake(0, self.view.bounds.size.height * 0.5, self.view.bounds.size.width, 52)
-		loginButton.frame = CGRectMake(0, self.view.bounds.size.height * 0.5 + 52 + 20, self.view.bounds.size.width, 44)
+		emailField.frame = CGRect(x: 0, y: self.view.bounds.size.height * 0.5 - 52 - 20, width: self.view.bounds.size.width, height: 52)
+		passwordField.frame = CGRect(x: 0, y: self.view.bounds.size.height * 0.5, width: self.view.bounds.size.width, height: 52)
+		loginButton.frame = CGRect(x: 0, y: self.view.bounds.size.height * 0.5 + 52 + 20, width: self.view.bounds.size.width, height: 44)
 	}
 	
 	func buttonHandler(){
 		loginWithCredentials(emailField.text!, pass: passwordField.text!)
 	}
 	
-	func loginWithCredentials(username: String, pass:String){
-		FIRAuth.auth()?.signInWithEmail(username, password: pass, completion: { (user, error) in
+	func loginWithCredentials(_ username: String, pass:String){
+		FIRAuth.auth()?.signIn(withEmail: username, password: pass, completion: { (user, error) in
 			if(error == nil){
 				// Success, logging in with email
-				self.presentViewController(MasterNavigationController(), animated: true, completion: nil);
+				self.present(MasterNavigationController(), animated: true, completion: nil);
 			} else{
 				// 2 POSSIBILITIES: (1) Account doesn't exist  (2) Account exists, password was incorrect
-				FIRAuth.auth()?.createUserWithEmail(username, password: pass, completion: { (user, error) in
+				FIRAuth.auth()?.createUser(withEmail: username, password: pass, completion: { (user, error) in
 					if(error == nil){
 						// Success, created account, logging in now
 						Fire.shared.createNewUserEntry(user!, completionHandler: { (success) in
-							self.presentViewController(MasterNavigationController(), animated: true, completion: nil)
+							self.present(MasterNavigationController(), animated: true, completion: nil)
 						})
 					} else{
 						let errorMessage = "Account exists but password is incorrect"
-						let alert = UIAlertController(title: username, message: errorMessage, preferredStyle: .Alert)
-						let action1 = UIAlertAction.init(title: "Try Again", style: .Default, handler: nil)
-						let action2 = UIAlertAction.init(title: "Send a password-reset email", style: .Destructive, handler: { (action) in
-							FIRAuth.auth()?.sendPasswordResetWithEmail(username) { error in
+						let alert = UIAlertController(title: username, message: errorMessage, preferredStyle: .alert)
+						let action1 = UIAlertAction.init(title: "Try Again", style: .default, handler: nil)
+						let action2 = UIAlertAction.init(title: "Send a password-reset email", style: .destructive, handler: { (action) in
+							FIRAuth.auth()?.sendPasswordReset(withEmail: username) { error in
 								if error == nil{
 									// Password reset email sent.
-									let alert = UIAlertController(title: "Email Sent", message: nil, preferredStyle: .Alert)
-									let action1 = UIAlertAction.init(title: "Okay", style: .Default, handler: nil)
+									let alert = UIAlertController(title: "Email Sent", message: nil, preferredStyle: .alert)
+									let action1 = UIAlertAction.init(title: "Okay", style: .default, handler: nil)
 									alert.addAction(action1)
-									self.presentViewController(alert, animated: true, completion: nil)
+									self.present(alert, animated: true, completion: nil)
 								} else{
-									let alert = UIAlertController(title: "Error sending email", message: error!.description, preferredStyle: .Alert)
-									let action1 = UIAlertAction.init(title: "Okay", style: .Default, handler: nil)
+									let alert = UIAlertController(title: "Error sending email", message: error!.localizedDescription, preferredStyle: .alert)
+									let action1 = UIAlertAction.init(title: "Okay", style: .default, handler: nil)
 									alert.addAction(action1)
-									self.presentViewController(alert, animated: true, completion: nil)
+									self.present(alert, animated: true, completion: nil)
 								}
 							}
 						})
 						alert.addAction(action1)
 						alert.addAction(action2)
-						self.presentViewController(alert, animated: true, completion: nil)
+						self.present(alert, animated: true, completion: nil)
 					}
 				})
 			}

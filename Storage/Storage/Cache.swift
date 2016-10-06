@@ -50,8 +50,6 @@ class Cache {
 	}
 }
 
-
-
 extension UIImageView {
 	
 	// UID can be found under your firebase database /files/images/
@@ -77,36 +75,6 @@ extension UIImageView {
 		}
 	}
 	
-	public func profileImageFromUserUID(_ uid: String){
-		if(Cache.shared.profileImage[uid] != nil){
-			self.image = Cache.shared.profileImage[uid]!
-			return
-		}
-		Fire.shared.getUser { (userUID, userData) in
-			if(userData != nil){
-				if let urlString = userData!["image"]{
-					if let url = URL(string: urlString as! String){
-						let request:URLRequest = URLRequest(url: url)
-						let session:URLSession = URLSession.shared
-						let task = session.dataTask(with: request, completionHandler: {data, response, error -> Void in
-							DispatchQueue.main.async {
-								if let imageData = data as Data? {
-									Cache.shared.profileImage[uid] = UIImage(data: imageData)
-									self.image = UIImage(data: imageData)
-								}
-							}
-						})
-						task.resume()
-					}
-				}
-				else{
-//					print("user exists, but has no image")
-					return
-				}
-			}
-		}
-	}
-
 	public func imageFromUrl(_ urlString: String) {
 		if let url = URL(string: urlString) {
 			let request:URLRequest = URLRequest(url: url)

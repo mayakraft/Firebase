@@ -11,7 +11,7 @@ import Firebase
 
 class MasterNavigationController: UINavigationController {
 	
-	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+	override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
 		// calling init() calls this function
 		super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
 		initCustom()
