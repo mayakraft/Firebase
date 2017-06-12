@@ -1,4 +1,4 @@
-//  Cache.swift
+//  Storage.swift
 //  Created by Robby on 8/8/16.
 //  Copyright © 2016 Robby. All rights reserved.
 
@@ -19,8 +19,8 @@ import Firebase
 // restriction on image file size
 let IMG_SIZE_MAX:Int64 = 15  // megabytes
 
-class Cache {
-	static let shared = Cache()
+class Storage {
+	static let shared = Storage()
 	fileprivate init() { }
 	
 	// Key is userUID
@@ -32,7 +32,7 @@ class Cache {
 	func imageFromStorageBucket(_ filename: String, completionHandler: @escaping (_ image:UIImage?, _ didRequireDownload:Bool) -> ()) {
 		if(storageBucket[filename] != nil){
 			//TODO: if image on database has changed, we need a force-refresh command
-			completionHandler(Cache.shared.storageBucket[filename]!, false)
+			completionHandler(Storage.shared.storageBucket[filename]!, false)
 			return
 		}
 		
@@ -42,8 +42,8 @@ class Cache {
 		imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
 			if(data != nil){
 				if let imageData = data as Data? {
-					Cache.shared.storageBucket[filename] = UIImage(data: imageData)
-					completionHandler(Cache.shared.storageBucket[filename]!, true)
+					self.storageBucket[filename] = UIImage(data: imageData)
+					completionHandler(self.storageBucket[filename]!, true)
 				}
 			}
 		}
@@ -65,7 +65,7 @@ extension UIImageView {
 						let task = session.dataTask(with: request, completionHandler: {data, response, error -> Void in
 							DispatchQueue.main.async {
 								if let imageData = data as Data? {
-									Cache.shared.profileImage[uid] = UIImage(data: imageData)
+									Storage.shared.profileImage[uid] = UIImage(data: imageData)
 									self.image = UIImage(data: imageData)
 								}
 							}

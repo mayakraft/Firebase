@@ -18,8 +18,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.main.bounds
 		let loginVC : LoginViewController = LoginViewController()
-		if(FIRAuth.auth()?.currentUser != nil){
-			loginVC.emailField.text = FIRAuth.auth()?.currentUser?.email
+		if let user = FIRAuth.auth()?.currentUser{
+			loginVC.emailField.text = user.email
 		}
 		self.window?.rootViewController = loginVC
 		self.window?.makeKeyAndVisible()

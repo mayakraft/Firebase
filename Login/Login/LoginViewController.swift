@@ -76,7 +76,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 				FIRAuth.auth()?.createUser(withEmail: username, password: pass, completion: { (user, error) in
 					if(error == nil){
 						// Success, created account, logging in now
-						Fire.shared.createNewUserEntry(user!, completionHandler: { (success) in
+						Fire.shared.createNewUser(user!, completionHandler: { (success) in
 							self.present(MasterNavigationController(), animated: true, completion: nil)
 						})
 					} else{

@@ -201,10 +201,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	func updateWithDelay() {
 		// TODO: list all UITextFields here
 		if let nameText = nameField.text{
-			Fire.shared.updateUserWithKeyAndValue("displayName", value: nameText as AnyObject, completionHandler: nil)
+			Fire.shared.updateUserWithKeyAndValue("displayName", value: nameText, completionHandler: nil)
 		}
 		if let detailText = detailField.text{
-			Fire.shared.updateUserWithKeyAndValue("detail", value: detailText as AnyObject, completionHandler: nil)
+			Fire.shared.updateUserWithKeyAndValue("detail", value: detailText, completionHandler: nil)
 		}
 		if(updateTimer != nil){
 			updateTimer?.invalidate()
@@ -216,10 +216,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	func textFieldDidEndEditing(_ textField: UITextField) {
 		// TODO: list all UITextFields here
 		if(textField.isEqual(nameField)){
-			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text! as AnyObject, completionHandler: nil)
+			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text!, completionHandler: nil)
 		}
 		if(textField.isEqual(detailField)){
-			Fire.shared.updateUserWithKeyAndValue("detail", value: textField.text! as AnyObject, completionHandler: nil)
+			Fire.shared.updateUserWithKeyAndValue("detail", value: textField.text!, completionHandler: nil)
 		}
 	}
 	
@@ -235,9 +235,9 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		let image = info[UIImagePickerControllerOriginalImage] as! UIImage
 		let data = UIImageJPEGRepresentation(image, 0.5)
 		if(data != nil){
-			Fire.shared.uploadFileAndMakeRecord(data!, fileType: .image_JPG, description: nil, completionHandler: { (downloadURL) in
+			Fire.shared.uploadFileAndMakeRecord(data!, fileType: .JPG, description: nil, completionHandler: { (downloadURL) in
 				if(downloadURL != nil){
-					Fire.shared.updateUserWithKeyAndValue("image", value: downloadURL!.absoluteString as AnyObject, completionHandler: { (success) in
+					Fire.shared.updateUserWithKeyAndValue("image", value: downloadURL!.absoluteString, completionHandler: { (success) in
 						if(success){
 							Cache.shared.profileImage[Fire.shared.myUID!] = image
 							self.profileImageView.image = image

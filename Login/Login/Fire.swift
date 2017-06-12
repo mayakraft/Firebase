@@ -21,8 +21,13 @@ import Firebase
 let IMAGE_DIRECTORY:String = "images/"
 let DOCUMENT_DIRECTORY:String = "documents/"
 
-enum StorageFileType {
-	case image_JPG, image_PNG, document_PDF
+enum FireError: Error {
+	case notLoggedIn
+	case error1(reason: String)
+}
+
+enum StorageFileType : String{
+	case JPG, PNG, PDF
 }
 
 class Fire {
@@ -31,9 +36,6 @@ class Fire {
 	let database: FIRDatabaseReference = FIRDatabase.database().reference()
 	let storage = FIRStorage.storage().reference()
 	
-	// this is up to you to manage - but cache database calls here if you want.
-	var databaseCache: AnyObject?
-	
 	// can monitor, pause, resume the current upload task
 	var currentUpload:FIRStorageUploadTask?
 	
@@ -41,35 +43,32 @@ class Fire {
 	
 	fileprivate init() {
 		// setup USER listener
-		FIRAuth.auth()?.addStateDidChangeListener { auth, user in
-			if user != nil {
-				print("   AUTH LISTENER: user \(user?.email!) signed in")
-				self.myUID = user?.uid
-				self.checkIfUserExists(user!, completionHandler: { (exists) in
-					if(exists){ }
-					else{
-						self.createNewUserEntry(user!, completionHandler: { (success) in
-						})
+		FIRAuth.auth()?.addStateDidChangeListener { auth, listenerUser in
+			if let user = listenerUser {
+				print("AUTH LISTENER: user \(user.email!) signed in")
+				self.myUID = user.uid
+				self.userExists(user, completionHandler: { (exists) in
+					if(!exists){
+						self.newUser(user, completionHandler: nil)
 					}
 				})
 			} else {
 				self.myUID = nil
-				print("   AUTH LISTENER: no user")
+				print("AUTH LISTENER: no user")
 			}
 		}
 		
 		let connectedRef = FIRDatabase.database().reference(withPath: ".info/connected")
 		connectedRef.observe(.value, with: { snapshot in
 			if let connected = snapshot.value as? Bool , connected {
-				print("INTERNET CONNECTION ESTABLISHED")
+				// internet connected :)
+				// banner alert
 			} else {
-				print("INTERNET CONNECTION DOWN")
+				// internet disconnected :(
+				// banner alert
 			}
 		})
-
 	}
-
-	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,73 +77,64 @@ class Fire {
 	
 	// childURL = nil returns the root of the database
 	// childURL can contain multiple subdirectories separated with a slash: "one/two/three"
-	func loadData(_ childURL:String?, completionHandler: @escaping (AnyObject?) -> ()) {
-		var reference = database
-		if(childURL != nil){
-			reference = database.child(childURL!)
+	func getData(_ childURL:String?, completionHandler: @escaping (Any?) -> ()) {
+		var reference = self.database
+		if let url = childURL{
+			reference = self.database.child(url)
 		}
 		reference.observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
-			if snapshot.value is NSNull {
-				completionHandler(nil)
-			} else {
-				completionHandler(snapshot.value as AnyObject?)
-			}
+			completionHandler(snapshot.value)
 		}
 	}
 	
-	func newUniqueObjectAtPath(_ childURL:String, object:AnyObject, completionHandler: (() -> ())?) {
-		database.child(childURL).childByAutoId().setValue(object) { (error, ref) in
-			if(completionHandler != nil){
-				completionHandler!()
+	// add an object to the database at a childURL, function returns the auto-generated key to that object
+	func setData(_ object:Any, atPath:String, completionHandler: ((Error?, FIRDatabaseReference) -> ())?) {
+		self.database.child(atPath).childByAutoId().setValue(object) { (error, ref) in
+			if let completion = completionHandler{
+				completion(error, ref)
 			}
 		}
 	}
 
-	
+
+	func dataExists(atPath:String, completionHandler: @escaping (Bool) -> ()) {
+		database.child(atPath).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+			if snapshot.value != nil{
+				completionHandler(true)
+			} else{
+				completionHandler(false)
+			}
+		}
+	}
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	//  USER
 	
-//	func user() -> FIRUser {
-//		return (FIRAuth.auth()?.currentUser)!
-//	}
-	
 	func getUser(_ completionHandler: @escaping (String?, [String:AnyObject]?) -> ()) {
-		let user = FIRAuth.auth()?.currentUser
-		database.child("users").child(user!.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+		guard let user = FIRAuth.auth()?.currentUser else{
+			completionHandler(nil, nil)
+			return
+		}
+		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
 			if snapshot.value is NSNull {
 				completionHandler(nil, nil)
 			} else {
 				let userData:[String:AnyObject]? = snapshot.value as! [String:AnyObject]?
-				completionHandler(user!.uid, userData)
+				completionHandler(user.uid, userData)
 			}
 		}
 	}
 	
-	func checkIfUserExists(_ user: FIRUser, completionHandler: @escaping (Bool) -> ()) {
-		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
-			if snapshot.value is NSNull {
-				completionHandler(false)
-			} else {
-				let userDict:[String:AnyObject] = snapshot.value as! [String:AnyObject]
-				if(userDict["createdAt"] != nil){
-					completionHandler(true)
-				} else{
-					completionHandler(false)
-				}
-			}
-		}
-	}
-
-	func createNewUserEntry(_ user:FIRUser, completionHandler: ((_ success:Bool) -> ())? ) {
+	func newUser(_ user:FIRUser, completionHandler: ((_ success:Bool) -> ())? ) {
 		// copy user data over from AUTH
 		let emailString:String = user.email!
-		let newUser:[String:AnyObject] = [
+		let newUser:[String:Any] = [
 //			"name"     : user.displayName! ,
 //			"image"    : user.photoURL!,
-			"email": emailString as AnyObject,
-			"createdAt": Date.init().timeIntervalSince1970 as AnyObject
+			"email": emailString,
+			"createdAt": Date.init().timeIntervalSince1970
 		]
 		database.child("users").child(user.uid).updateChildValues(newUser) { (error, ref) in
 			if error == nil{
@@ -158,19 +148,33 @@ class Fire {
 			}
 		}
 	}
-
-	func updateUserWithKeyAndValue(_ key:String, value:AnyObject, completionHandler: ((_ success:Bool) -> ())? ) {
-		if let user = FIRAuth.auth()?.currentUser{
-			database.child("users").child(user.uid).updateChildValues([key:value]) { (error, ref) in
-				if (error == nil){
-					print("saving \(value) into \(key)")
-					if(completionHandler != nil){
-						completionHandler!(true)
-					}
-				} else{
-					if(completionHandler != nil){
-						completionHandler!(false)
-					}
+	
+	func userExists(_ user: FIRUser, completionHandler: @escaping (Bool) -> ()) {
+		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+			if snapshot.value != nil{
+				completionHandler(true)
+			} else{
+				completionHandler(false)
+			}
+		}
+	}
+	
+	func updateUserWithKeyAndValue(_ key:String, value:Any, completionHandler: ((_ success:Bool) -> ())? ) {
+		guard let user = FIRAuth.auth()?.currentUser else{
+			if let completion = completionHandler{
+				completion(false)
+			}
+			return
+		}
+		database.child("users").child(user.uid).updateChildValues([key:value]) { (error, ref) in
+			if (error == nil){
+				print("saving \(value) into \(key)")
+				if(completionHandler != nil){
+					completionHandler!(true)
+				}
+			} else{
+				if(completionHandler != nil){
+					completionHandler!(false)
 				}
 			}
 		}
@@ -190,17 +194,17 @@ class Fire {
 		var storagePath:String
 		var databaseDirectory:String
 		switch fileType {
-		case .image_JPG:
+		case .JPG:
 			filename = filename + ".jpg"
 			storagePath = IMAGE_DIRECTORY + filename
 			databaseDirectory = "files/" + IMAGE_DIRECTORY
 			break
-		case .image_PNG:
+		case .PNG:
 			filename = filename + ".png"
 			storagePath = IMAGE_DIRECTORY + filename
 			databaseDirectory = "files/" + IMAGE_DIRECTORY
 			break
-		case .document_PDF:
+		case .PDF:
 			filename = filename + ".pdf"
 			storagePath = DOCUMENT_DIRECTORY + filename
 			databaseDirectory = "files/" + DOCUMENT_DIRECTORY
@@ -223,7 +227,7 @@ class Fire {
 				}
 				let entry:[String:AnyObject] = ["filename":filename as AnyObject,
 				                                "path":storagePath as AnyObject,
-				                                "type":stringForStorageFileType(fileType) as AnyObject,
+				                                "type":fileType.rawValue as AnyObject,
 				                                "size":data.count as AnyObject,
 				                                "description":descriptionString as AnyObject,
 				                                "url":downloadURL.absoluteString as AnyObject]
@@ -234,12 +238,3 @@ class Fire {
 		}
 	}
 }
-
-func stringForStorageFileType(_ fileType:StorageFileType) -> String {
-	switch fileType {
-	case .image_JPG:    return "JPG"
-	case .image_PNG:    return "PNG"
-	case .document_PDF: return "PDF"
-	}
-}
-
