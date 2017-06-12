@@ -12,7 +12,7 @@ class Fire {
 	
 	static let shared = Fire()
 	
-	let database : FIRDatabaseReference = FIRDatabase.database().reference()
+	let database : DatabaseReference = Database.database().reference()
 	
 	// snapshot from the last call to "loadData"
 	var data: AnyObject?
@@ -22,11 +22,11 @@ class Fire {
 	// childURL = nil returns the root of the database
 	// childURL can contain multiple subdirectories separated with a slash: "one/two/three"
 	func loadData(childURL:String?, completionHandler: @escaping (AnyObject?) -> ()) {
-		var reference:FIRDatabaseReference = database
+		var reference:DatabaseReference = database
 		if(childURL != nil){
 			reference = database.child(childURL!)
 		}
-		reference.observeSingleEvent(of: .value) { (snapshot:FIRDataSnapshot) in
+		reference.observeSingleEvent(of: .value) { (snapshot:DataSnapshot) in
 			if snapshot.value is NSNull {
 				completionHandler(nil)
 			} else {

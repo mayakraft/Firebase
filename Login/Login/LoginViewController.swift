@@ -67,13 +67,13 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 	}
 	
 	func loginWithCredentials(_ username: String, pass:String){
-		FIRAuth.auth()?.signIn(withEmail: username, password: pass, completion: { (user, error) in
+		Auth.auth().signIn(withEmail: username, password: pass, completion: { (user, error) in
 			if(error == nil){
 				// Success, logging in with email
 				self.present(MasterNavigationController(), animated: true, completion: nil);
 			} else{
 				// 2 POSSIBILITIES: (1) Account doesn't exist  (2) Account exists, password was incorrect
-				FIRAuth.auth()?.createUser(withEmail: username, password: pass, completion: { (user, error) in
+				Auth.auth().createUser(withEmail: username, password: pass, completion: { (user, error) in
 					if(error == nil){
 						// Success, created account, logging in now
 						Fire.shared.newUser(user!, completionHandler: { (success) in
@@ -84,7 +84,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 						let alert = UIAlertController(title: username, message: errorMessage, preferredStyle: .alert)
 						let action1 = UIAlertAction.init(title: "Try Again", style: .default, handler: nil)
 						let action2 = UIAlertAction.init(title: "Send a password-reset email", style: .destructive, handler: { (action) in
-							FIRAuth.auth()?.sendPasswordReset(withEmail: username) { error in
+							Auth.auth().sendPasswordReset(withEmail: username) { error in
 								if error == nil{
 									// Password reset email sent.
 									let alert = UIAlertController(title: "Email Sent", message: nil, preferredStyle: .alert)

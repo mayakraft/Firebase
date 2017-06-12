@@ -159,7 +159,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	
 	func logOut(){
 		do{
-			try FIRAuth.auth()?.signOut()
+			try Auth.auth().signOut()
 			self.navigationController?.dismiss(animated: true, completion: nil)
 		}catch{
 			

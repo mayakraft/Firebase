@@ -69,17 +69,17 @@ let IMG_SIZE_MAX:Int64 = 15  // megabytes
 class Fire {
 	static let shared = Fire()
 	
-	let database: FIRDatabaseReference = FIRDatabase.database().reference()
-	let storage = FIRStorage.storage().reference()
+	let database: DatabaseReference = Database.database().reference()
+	let storage = Storage.storage().reference()
 	
 	// can monitor, pause, resume the current upload task
-	var currentUpload:FIRStorageUploadTask?
+	var currentUpload:StorageUploadTask?
 	
 	var myUID:String?  // if you are logged in, if not, == nil
 	
 	fileprivate init() {
 		// setup USER listener
-		FIRAuth.auth()?.addStateDidChangeListener { auth, listenerUser in
+		Auth.auth().addStateDidChangeListener { auth, listenerUser in
 			if let user = listenerUser {
 				print("SIGN IN: \(user.email ?? user.uid)")
 				self.myUID = user.uid
@@ -94,7 +94,7 @@ class Fire {
 			}
 		}
 		
-		let connectedRef = FIRDatabase.database().reference(withPath: ".info/connected")
+		let connectedRef = Database.database().reference(withPath: ".info/connected")
 		connectedRef.observe(.value, with: { snapshot in
 			if let connected = snapshot.value as? Bool , connected {
 				// internet connected
@@ -118,13 +118,13 @@ class Fire {
 		if let url = childURL{
 			reference = self.database.child(url)
 		}
-		reference.observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+		reference.observeSingleEvent(of: .value) { (snapshot: DataSnapshot) in
 			completionHandler(snapshot.value)
 		}
 	}
 	
 	// add an object to the database at a childURL, function returns the auto-generated key to that object
-	func setData(_ object:Any, at path:String, completionHandler: ((Bool, FIRDatabaseReference) -> ())?) {
+	func setData(_ object:Any, at path:String, completionHandler: ((Bool, DatabaseReference) -> ())?) {
 		self.database.child(path).setValue(object) { (error, ref) in
 			if let e = error{
 				print(e.localizedDescription)
@@ -142,7 +142,7 @@ class Fire {
 	// add an object AS A CHILD to the path, returns the key to that object
 	//   ONLY if the object at path is a dictionary or array
 	//   if it is a leaf (String, Number, Bool) it doesn't do anything (prevents overwriting)
-	func addData(_ object:Any, asChildAt path:String, completionHandler: ((_ success:Bool, _ newKey:String?, FIRDatabaseReference?) -> ())?) {
+	func addData(_ object:Any, asChildAt path:String, completionHandler: ((_ success:Bool, _ newKey:String?, DatabaseReference?) -> ())?) {
 		self.doesDataExist(at: path) { (exists, dataType, data) in
 			switch dataType{
 			//  1) if array, it MAINTAINS the array structure (number key, not dictionary string key)
@@ -186,7 +186,7 @@ class Fire {
 
 
 	func doesDataExist(at path:String, completionHandler: @escaping (_ doesExist:Bool, _ dataType:JSONDataType, _ data:Any?) -> ()) {
-		database.child(path).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+		database.child(path).observeSingleEvent(of: .value) { (snapshot: DataSnapshot) in
 			if let data = snapshot.value{
 				completionHandler(true, self.typeOf(FirebaseData: data), data)
 			} else{
@@ -233,10 +233,10 @@ class Fire {
 	//  USER
 	
 	func getCurrentUser(_ completionHandler: @escaping (String, [String:Any]) -> ()) {
-		guard let user = FIRAuth.auth()?.currentUser else{
+		guard let user = Auth.auth().currentUser else{
 			return
 		}
-		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: DataSnapshot) in
 			if let userData = snapshot.value as? [String:Any]{
 				completionHandler(user.uid, userData)
 			} else{
@@ -254,7 +254,7 @@ class Fire {
 	}
 	
 	func updateCurrentUserWith(key:String, object value:Any, completionHandler: ((_ success:Bool) -> ())? ) {
-		guard let user = FIRAuth.auth()?.currentUser else{
+		guard let user = Auth.auth().currentUser else{
 			if let completion = completionHandler{
 				completion(false)
 			}
@@ -275,7 +275,7 @@ class Fire {
 		}
 	}
 	
-	func newUser(_ user:FIRUser, completionHandler: ((_ success:Bool) -> ())? ) {
+	func newUser(_ user:User, completionHandler: ((_ success:Bool) -> ())? ) {
 		var newUser:[String:Any] = [
 			"createdAt": Date.init().timeIntervalSince1970
 		]
@@ -298,8 +298,8 @@ class Fire {
 		}
 	}
 	
-	func userExists(_ user: FIRUser, completionHandler: @escaping (Bool) -> ()) {
-		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+	func userExists(_ user: User, completionHandler: @escaping (Bool) -> ()) {
+		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: DataSnapshot) in
 			if snapshot.value != nil{
 				completionHandler(true)
 			} else{
@@ -326,10 +326,10 @@ class Fire {
 			}
 		}
 		
-		let storage = FIRStorage.storage().reference()
+		let storage = Storage.storage().reference()
 		let imageRef = storage.child(STORAGE_IMAGE_DIR + filename)
 		
-		imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
+		imageRef.getData(maxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
 			if let e = error{
 				print(e.localizedDescription)
 			} else{
@@ -351,7 +351,7 @@ class Fire {
 		// prep file info
 		var filename:String = UUID.init().uuidString
 		var storageDir:String
-		let uploadMetadata = FIRStorageMetadata()
+		let uploadMetadata = StorageMetadata()
 		switch fileType {
 		case .JPG:
 			filename = filename + ".jpg"
@@ -370,7 +370,7 @@ class Fire {
 		
 		// STEP 1 - upload file to storage
 		// TODO: make currentUpload an array, if upload in progress add this to array
-		currentUpload = storage.child(filenameAndPath).put(data, metadata: uploadMetadata) { metadata, error in
+		currentUpload = storage.child(filenameAndPath).putData(data, metadata: uploadMetadata, completion: { (metadata, error) in
 			if let e = error {
 				print(e.localizedDescription)
 			} else {
@@ -398,7 +398,7 @@ class Fire {
 					}
 				}
 			}
-		}
+		})
 	}
 }
 
@@ -415,9 +415,9 @@ extension UIImageView {
 				return
 			}
 		}
-		let storage = FIRStorage.storage().reference()
+		let storage = Storage.storage().reference()
 		let imageRef = storage.child("images/" + filename)
-		imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
+		imageRef.getData(maxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
 			if let e = error{
 				print(e.localizedDescription)
 			} else{
@@ -440,9 +440,9 @@ extension UIImageView {
 						return
 					}
 				}
-				let storage = FIRStorage.storage().reference()
+				let storage = Storage.storage().reference()
 				let imageRef = storage.child("images/" + imageFilename)
-				imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
+				imageRef.getData(maxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
 					if let e = error{
 						print(e.localizedDescription)
 					} else{

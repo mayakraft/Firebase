@@ -18,7 +18,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.main.bounds
 		let loginVC : LoginViewController = LoginViewController()
-		if let user = FIRAuth.auth()?.currentUser{
+		if let user = Auth.auth().currentUser{
 			loginVC.emailField.text = user.email
 		}
 		self.window?.rootViewController = loginVC
@@ -32,11 +32,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 		// Override point for customization after application launch.
 		
-		FIRApp.configure()
+		FirebaseApp.configure()
 		
 		_ = Fire.shared
 		
-		if (FIRAuth.auth()?.currentUser) != nil {
+		if (Auth.auth().currentUser) != nil {
 			// User is signed in.
 			launchApp(false)
 		} else {

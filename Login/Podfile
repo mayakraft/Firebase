@@ -2,8 +2,8 @@ platform :ios, '9.0'
 use_frameworks!
 
 target 'Login' do
-	pod 'Firebase'
-	pod 'Firebase/Database'
-	pod 'Firebase/Auth'
-	pod 'Firebase/Storage'
+	pod 'Firebase', '~> 4.0'
+	pod 'FirebaseDatabase', '~> 4.0'
+	pod 'FirebaseAuth', '~> 4.0'
+	pod 'FirebaseStorage', '~> 2.0'
 end
