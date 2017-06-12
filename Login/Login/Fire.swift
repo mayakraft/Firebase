@@ -9,30 +9,62 @@
 // guards for setting and retrieving data
 // handling all types of JSON data: nil, bool, int, float, string, array, dictionary
 // Firebase uses Arrays which takes some extra safeguarding to manage
+//
+// getData() get data from database
+// setData() overwrite data at a certain location in the database
+// addData() generate a new key and add data as a child
+// doesDataExist() check if data exists at a certain location
+
 
 // USER:
 // Firebase comes with FireAuth with a "user" class, but you can't edit it.
-// this singleton is for making and managing a separate "users" class
+// solution: "users" entry in database with copies of User entries but with more info
 //  - each user is stored under their user.uid
 //  - can add as many fields as you want (nickname, photo, etc..)
+// all the references to "user" are to our database's user entries, not the proper FIRAuth entry
+//
+//
+// getCurrentUser() get all your profile information
+// updateCurrentUserWith() update your profile with new information
+// newUser() create a new entry for a user (usually for yourself after 1st login)
+// userExists() check if a user exists
 
 // STORAGE:
-// since Firebase Storage doesn't keep track of the files you upload,
-// this maintains a record of the uploaded files in your database
+// firebase storage doesn't let you ask for the contents of its folder
+// 1) everytime you save an image, it creates an entry for it in your database
+//    now you are manually maintaining a list of the contents of your firebase storage
+//      (unless you upload by some other means)
+//
+// 2) this class also maintains a cache of already-loaded images
+
 
 import Firebase
-
-let STORAGE_IMAGE_DIR:String = "images/"
-let STORAGE_DOCUMENT_DIR:String = "documents/"
 
 enum JSONDataType {
 	case isBool, isInt, isFloat, isString, isArray, isDictionary, isURL, isNULL
 	// isURL is a special kind of string, kind of weird design i know, but it ends up being helpful
 }
 
+let STORAGE_IMAGE_DIR:String = "images/"
+let STORAGE_DOCUMENT_DIR:String = "documents/"
 enum StorageFileType : String{
 	case JPG, PNG, PDF
 }
+
+struct StorageFileMetadata {
+	var filename:String
+	var fullpath:String
+	var directory:String
+	var contentType:String
+	var type:StorageFileType
+	var size:Int
+	var url:URL?
+	var description:String?
+}
+
+// getting an image requires restriction on anticipated image file size
+let IMG_SIZE_MAX:Int64 = 15  // megabytes
+
 
 class Fire {
 	static let shared = Fire()
@@ -200,39 +232,68 @@ class Fire {
 	//
 	//  USER
 	
-	func getUser(_ completionHandler: @escaping (String?, [String:AnyObject]?) -> ()) {
+	func getCurrentUser(_ completionHandler: @escaping (String, [String:Any]) -> ()) {
 		guard let user = FIRAuth.auth()?.currentUser else{
-			completionHandler(nil, nil)
 			return
 		}
 		database.child("users").child(user.uid).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
-			if snapshot.value is NSNull {
-				completionHandler(nil, nil)
-			} else {
-				let userData:[String:AnyObject]? = snapshot.value as! [String:AnyObject]?
+			if let userData = snapshot.value as? [String:Any]{
 				completionHandler(user.uid, userData)
+			} else{
+				print("user has no data")
+			}
+		}
+	}
+	
+	func getUser(UID:String, _ completionHandler: @escaping ([String:Any]) -> ()){
+		database.child("users").child(UID).observeSingleEvent(of: .value, with: { (snapshot) in
+			if let userData = snapshot.value as? [String:Any]{
+				completionHandler(userData)
+			}
+		})
+	}
+	
+	func updateCurrentUserWith(key:String, object value:Any, completionHandler: ((_ success:Bool) -> ())? ) {
+		guard let user = FIRAuth.auth()?.currentUser else{
+			if let completion = completionHandler{
+				completion(false)
+			}
+			return
+		}
+		database.child("users").child(user.uid).updateChildValues([key:value]) { (error, ref) in
+			if let e = error{
+				print(e.localizedDescription)
+				if let completion = completionHandler{
+					completion(false)
+				}
+			} else{
+//				print("saving \(value) into \(key)")
+				if let completion = completionHandler{
+					completion(true)
+				}
 			}
 		}
 	}
 	
 	func newUser(_ user:FIRUser, completionHandler: ((_ success:Bool) -> ())? ) {
-		// copy user data over from AUTH
-		let emailString:String = user.email!
-		let newUser:[String:Any] = [
-//			"name"     : user.displayName! ,
-//			"image"    : user.photoURL!,
-			"email": emailString,
+		var newUser:[String:Any] = [
 			"createdAt": Date.init().timeIntervalSince1970
 		]
+		// copy user data over from AUTH
+		if let nameString  = user.displayName { newUser["name"] = nameString   }
+		if let imageURL    = user.photoURL {    newUser["image"] = imageURL    }
+		if let emailString = user.email {       newUser["email"] = emailString }
+		
 		database.child("users").child(user.uid).updateChildValues(newUser) { (error, ref) in
-			if error == nil{
-				if(completionHandler != nil){
-					print("added \(emailString) to the database")
-					completionHandler!(true)
+			if let e = error{
+				print(e.localizedDescription)
+				if let completion = completionHandler{
+					completion(false)
 				}
 			} else{
-				// error creating user
-				completionHandler!(false)
+				if let completion = completionHandler{
+					completion(true)
+				}
 			}
 		}
 	}
@@ -247,81 +308,161 @@ class Fire {
 		}
 	}
 	
-	func updateUserWithKeyAndValue(_ key:String, value:Any, completionHandler: ((_ success:Bool) -> ())? ) {
-		guard let user = FIRAuth.auth()?.currentUser else{
-			if let completion = completionHandler{
-				completion(false)
-			}
-			return
-		}
-		database.child("users").child(user.uid).updateChildValues([key:value]) { (error, ref) in
-			if (error == nil){
-				print("saving \(value) into \(key)")
-				if(completionHandler != nil){
-					completionHandler!(true)
-				}
-			} else{
-				if(completionHandler != nil){
-					completionHandler!(false)
-				}
-			}
-		}
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//
 	//  STORAGE
-	
-	// specify a UUIDFilename, or it will generate one for you
-	func uploadFileAndMakeRecord(_ data:Data, fileType:StorageFileType, description:String?, completionHandler: @escaping (_ downloadURL:URL?) -> ()) {
 		
-		// prep file info
-		var filename:String = UUID.init().uuidString
-		var storagePath:String
-		var databaseDirectory:String
-		switch fileType {
-		case .JPG:
-			filename = filename + ".jpg"
-			storagePath = STORAGE_IMAGE_DIR + filename
-			databaseDirectory = "files/" + STORAGE_IMAGE_DIR
-			break
-		case .PNG:
-			filename = filename + ".png"
-			storagePath = STORAGE_IMAGE_DIR + filename
-			databaseDirectory = "files/" + STORAGE_IMAGE_DIR
-			break
-		case .PDF:
-			filename = filename + ".pdf"
-			storagePath = STORAGE_DOCUMENT_DIR + filename
-			databaseDirectory = "files/" + STORAGE_DOCUMENT_DIR
-			break
+	// Key is filename in the images/ folder in the Firebase storage bucket
+	// example: "0C5BABB0D5CA.jpg"
+	var imageCache:[String:UIImage] = [:]
+	
+	func imageFromStorageBucket(_ filename: String, completionHandler: @escaping (_ image:UIImage, _ didRequireDownload:Bool) -> ()) {
+		if let image = imageCache[filename]{
+			//TODO: check timestamp against database, force a data refresh
+			completionHandler(image, false)
+			return
 		}
 		
-		// STEP 1 - upload file to storage
-		currentUpload = storage.child(storagePath).put(data, metadata: nil) { metadata, error in
-			// TODO: make currentUpload an array, if upload in progress add this to array
-			if let e = error {
+		let storage = FIRStorage.storage().reference()
+		let imageRef = storage.child(STORAGE_IMAGE_DIR + filename)
+		
+		imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
+			if let e = error{
 				print(e.localizedDescription)
-				completionHandler(nil)
-			} else {
-				// STEP 2 - record new file in database
-				let downloadURL = metadata!.downloadURL()!
-				let key = self.database.child(databaseDirectory).childByAutoId().key
-				var descriptionString:String = ""
-				if(description != nil){
-					descriptionString = description!
-				}
-				let entry:[String:AnyObject] = ["filename":filename as AnyObject,
-				                                "path":storagePath as AnyObject,
-				                                "type":fileType.rawValue as AnyObject,
-				                                "size":data.count as AnyObject,
-				                                "description":descriptionString as AnyObject,
-				                                "url":downloadURL.absoluteString as AnyObject]
-				self.database.child(databaseDirectory).updateChildValues([key:entry]) { (error, ref) in
-					completionHandler(downloadURL)
+			} else{
+				if let imageData = data {
+					if let image = UIImage(data: imageData){
+						self.imageCache[filename] = image
+						completionHandler(image, true)
+					} else{
+						print("problem making image out of received data")
+					}
 				}
 			}
 		}
 	}
+	
+	// specify a UUIDFilename, or it will generate one for you
+	func uploadFileAndMakeRecord(_ data:Data, fileType:StorageFileType, description:String?, completionHandler: @escaping (_ metadata:StorageFileMetadata) -> ()) {
+		
+		// prep file info
+		var filename:String = UUID.init().uuidString
+		var storageDir:String
+		let uploadMetadata = FIRStorageMetadata()
+		switch fileType {
+		case .JPG:
+			filename = filename + ".jpg"
+			storageDir = STORAGE_IMAGE_DIR
+			uploadMetadata.contentType = "image/jpeg"
+		case .PNG:
+			filename = filename + ".png"
+			storageDir = STORAGE_IMAGE_DIR
+			uploadMetadata.contentType = "image/png"
+		case .PDF:
+			filename = filename + ".pdf"
+			storageDir = STORAGE_DOCUMENT_DIR
+			uploadMetadata.contentType = "application/pdf"
+		}
+		let filenameAndPath:String = storageDir + filename
+		
+		// STEP 1 - upload file to storage
+		currentUpload = storage.child(filenameAndPath).put(data, metadata: uploadMetadata) { metadata, error in
+			// TODO: make currentUpload an array, if upload in progress add this to array
+			if let e = error {
+				print(e.localizedDescription)
+			} else {
+				if let meta = metadata{
+					// STEP 2 - record new file in database
+					var entry:[String:Any] = ["filename":filename,
+					                          "fullpath":filenameAndPath,
+					                          "directory":storageDir,
+					                          "content-type":uploadMetadata.contentType ?? "",
+					                          "type":fileType.rawValue,
+					                          "size":data.count]
+
+					if let downloadURL = meta.downloadURL(){
+						entry["url"] = downloadURL.absoluteString
+					}
+					if let descriptionString = description{
+						entry["description"] = descriptionString
+					}
+					let key = self.database.child("files/" + storageDir).childByAutoId().key
+					self.database.child("files/" + storageDir).updateChildValues([key:entry]) { (error, ref) in
+						let info:StorageFileMetadata = StorageFileMetadata(filename: filename, fullpath: filenameAndPath, directory: storageDir, contentType: uploadMetadata.contentType ?? "", type: fileType, size: data.count, url: meta.downloadURL(), description: description)
+						completionHandler(info)
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+extension UIImageView {
+	
+	public func imageFromStorage(_ filename: String){
+		// filename:String is the filename in the Firebase Storage bucket, no directories
+		// example: "0C5BABB0D5CA.jpg"
+		if let image = Fire.shared.imageCache[filename]{
+			self.image = image
+			return
+		}
+		let storage = FIRStorage.storage().reference()
+		let imageRef = storage.child("images/" + filename)
+		imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
+			if let e = error{
+				print(e.localizedDescription)
+			} else{
+				if let imageData = data {
+					if let image = UIImage(data: imageData){
+						Fire.shared.imageCache[filename] = image
+						self.image = image
+					}
+				}
+			}
+		}
+	}
+
+	public func profileImageForUser(uid: String){
+		Fire.shared.getUser(UID: uid) { (userData) in
+			if let imageFilename = userData["image"] as? String{
+				if let image = Fire.shared.imageCache[imageFilename]{
+					self.image = image
+					return
+				}
+				let storage = FIRStorage.storage().reference()
+				let imageRef = storage.child("images/" + imageFilename)
+				imageRef.data(withMaxSize: IMG_SIZE_MAX * 1024 * 1024) { (data, error) in
+					if let e = error{
+						print(e.localizedDescription)
+					} else{
+						if let imageData = data {
+							if let image = UIImage(data: imageData){
+								Fire.shared.imageCache[imageFilename] = image
+								self.image = image
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public func imageFromUrl(_ urlString: String) {
+		if let url = URL(string: urlString) {
+			let request:URLRequest = URLRequest(url: url)
+			let session:URLSession = URLSession.shared
+			let task = session.dataTask(with: request, completionHandler: {data, response, error -> Void in
+				DispatchQueue.main.async {
+					if let imageData = data as Data? {
+						self.image = UIImage(data: imageData)
+					}
+				}
+			})
+			task.resume()
+		}
+	}
+	
 }

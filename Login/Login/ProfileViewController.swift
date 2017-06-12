@@ -125,10 +125,8 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		signoutButton.frame = CGRect(x: 0, y: header + imgArea + 10*5 + 44*4, width: self.view.bounds.size.width, height: 44)
 		
 		// populate screen
-		Fire.shared.getUser { (uid, userData) in
-			if(uid != nil && userData != nil){
-				self.populateUserData(uid!, userData: userData!)
-			}
+		Fire.shared.getCurrentUser { (uid, userData) in
+			self.populateUserData(uid, userData: userData)
 		}
 		
 		NotificationCenter.default.addObserver(self, selector: #selector(textFieldDidChange), name: NSNotification.Name(rawValue: "UITextFieldTextDidChangeNotification"), object: nil)
@@ -140,9 +138,11 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 		}
 	}
 	
-	func populateUserData(_ uid:String, userData:[String:AnyObject]){
-		if(userData["image"] != nil){
-			profileImageView.profileImageFromUserUID(uid)
+	func populateUserData(_ uid:String, userData:[String:Any]){
+		if let profileImage = userData["image"] as? String{
+			Fire.shared.imageFromStorageBucket(profileImage, completionHandler: { (image, didRequireDownload) in
+				self.profileImageView.image = image
+			})
 		} else{
 			// blank profile image
 			profileImageView.image = nil
@@ -201,10 +201,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	func updateWithDelay() {
 		// TODO: list all UITextFields here
 		if let nameText = nameField.text{
-			Fire.shared.updateUserWithKeyAndValue("displayName", value: nameText, completionHandler: nil)
+			Fire.shared.updateCurrentUserWith(key:"displayName", object: nameText, completionHandler: nil)
 		}
 		if let detailText = detailField.text{
-			Fire.shared.updateUserWithKeyAndValue("detail", value: detailText, completionHandler: nil)
+			Fire.shared.updateCurrentUserWith(key: "detail", object: detailText, completionHandler: nil)
 		}
 		if(updateTimer != nil){
 			updateTimer?.invalidate()
@@ -216,10 +216,10 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	func textFieldDidEndEditing(_ textField: UITextField) {
 		// TODO: list all UITextFields here
 		if(textField.isEqual(nameField)){
-			Fire.shared.updateUserWithKeyAndValue("displayName", value: textField.text!, completionHandler: nil)
+			Fire.shared.updateCurrentUserWith(key: "displayName", object: textField.text!, completionHandler: nil)
 		}
 		if(textField.isEqual(detailField)){
-			Fire.shared.updateUserWithKeyAndValue("detail", value: textField.text!, completionHandler: nil)
+			Fire.shared.updateCurrentUserWith(key: "detail", object: textField.text!, completionHandler: nil)
 		}
 	}
 	
@@ -233,26 +233,17 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 	
 	func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
 		let image = info[UIImagePickerControllerOriginalImage] as! UIImage
-		let data = UIImageJPEGRepresentation(image, 0.5)
-		if(data != nil){
-			Fire.shared.uploadFileAndMakeRecord(data!, fileType: .JPG, description: nil, completionHandler: { (downloadURL) in
-				if(downloadURL != nil){
-					Fire.shared.updateUserWithKeyAndValue("image", value: downloadURL!.absoluteString, completionHandler: { (success) in
-						if(success){
-							Storage.shared.profileImage[Fire.shared.myUID!] = image
-							self.profileImageView.image = image
-						}
-						else{
-							
-						}
-					})
-				}
+		let imageData = UIImageJPEGRepresentation(image, 0.5)
+		if let data = imageData{
+			Fire.shared.uploadFileAndMakeRecord(data, fileType: .JPG, description: nil, completionHandler: { (metadata) in
+				Fire.shared.updateCurrentUserWith(key: "image", object: metadata.filename, completionHandler: { (success) in
+					if success{
+						Fire.shared.imageCache[metadata.filename] = image
+						self.profileImageView.image = image
+					}
+				})
 			})
-		}
-		if(data == nil){
-			print("image picker data is nil")
 		}
 		self.navigationController?.dismiss(animated: true, completion: nil)
 	}
-	
 }

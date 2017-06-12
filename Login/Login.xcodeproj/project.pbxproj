@@ -12,7 +12,6 @@
 		D523C3161DA5807300490E71 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D523C3151DA5807300490E71 /* Assets.xcassets */; };
 		D523C3191DA5807300490E71 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D523C3171DA5807300490E71 /* LaunchScreen.storyboard */; };
 		D523C3211DA580E600490E71 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D523C3201DA580E600490E71 /* GoogleService-Info.plist */; };
-		D523C3271DA5814C00490E71 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C3221DA5814C00490E71 /* Storage.swift */; };
 		D523C3281DA5814C00490E71 /* Fire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C3231DA5814C00490E71 /* Fire.swift */; };
 		D523C3291DA5814C00490E71 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C3241DA5814C00490E71 /* LoginViewController.swift */; };
 		D523C32A1DA5814C00490E71 /* MasterNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C3251DA5814C00490E71 /* MasterNavigationController.swift */; };
@@ -27,7 +26,6 @@
 		D523C3181DA5807300490E71 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D523C31A1DA5807300490E71 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D523C3201DA580E600490E71 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		D523C3221DA5814C00490E71 /* Storage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
 		D523C3231DA5814C00490E71 /* Fire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fire.swift; sourceTree = "<group>"; };
 		D523C3241DA5814C00490E71 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		D523C3251DA5814C00490E71 /* MasterNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MasterNavigationController.swift; sourceTree = "<group>"; };
@@ -79,7 +77,6 @@
 			isa = PBXGroup;
 			children = (
 				D523C30E1DA5807300490E71 /* AppDelegate.swift */,
-				D523C3221DA5814C00490E71 /* Storage.swift */,
 				D523C3231DA5814C00490E71 /* Fire.swift */,
 				D523C3241DA5814C00490E71 /* LoginViewController.swift */,
 				D523C3251DA5814C00490E71 /* MasterNavigationController.swift */,
@@ -224,7 +221,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D523C32A1DA5814C00490E71 /* MasterNavigationController.swift in Sources */,
-				D523C3271DA5814C00490E71 /* Storage.swift in Sources */,
 				D523C30F1DA5807300490E71 /* AppDelegate.swift in Sources */,
 				D523C32B1DA5814C00490E71 /* ProfileViewController.swift in Sources */,
 				D523C3291DA5814C00490E71 /* LoginViewController.swift in Sources */,
