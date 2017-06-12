@@ -238,7 +238,6 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 			Fire.shared.uploadFileAndMakeRecord(data, fileType: .JPG, description: nil, completionHandler: { (metadata) in
 				Fire.shared.updateCurrentUserWith(key: "image", object: metadata.filename, completionHandler: { (success) in
 					if success{
-						Fire.shared.imageCache[metadata.filename] = image
 						self.profileImageView.image = image
 					}
 				})

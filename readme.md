@@ -1,18 +1,20 @@
-# Example Projects
+# Fire.swift
 
-## Login
+> a singleton class to assist interfacing with the database, Firebase storage bucket, caching files, managing your Auth info and interacting with other Auth users
 
-Login portal: create a personal account / login, logs you into your profile page where you can edit your profile details, upload picture. Everyone has a profile, that's it. Foundation for social media-type apps.
+# Example Project: Login Portal
+
+create a personal account / login, logs you into your profile page where you can edit your profile details, upload picture. Everyone has a profile, that's it. Foundation for social media-type apps.
 
 ![animation](https://raw.github.com/robbykraft/Firebase/master/readme/login.gif)
 
-## Browse
+# Example Project: Browse
 
 Browse the entire database in a simple UITableView. Firebase sometimes delivers JSON objects as an `Array` or `Dictionary`, this handles each case, and includes object type detection.
 
 ![animation](https://raw.github.com/robbykraft/Firebase/master/readme/browse.gif)
 
-## Setup Example Projects
+## Example projects require Cocoa Pod and Firebase Install
 
 1. Install Cocoa Pods:
    * in command line navigate to the directory with the .xcodeproj file, type `pod install`
@@ -27,7 +29,7 @@ see [Firebase Getting Started Documentation](https://firebase.google.com/docs/io
 
 # Documentation
 
-## Fire.swift divided into 3 parts:
+## Fire.swift covers 3 subjects:
 
 * Database
 * User
@@ -35,16 +37,14 @@ see [Firebase Getting Started Documentation](https://firebase.google.com/docs/io
 
 ## Database
 
-Convenience functions for setting and retrieving data, properly handling JSON data types: nil, bool, int, float, string, array, dictionary, and Firebase uses arrays which takes some extra safeguarding to manage.
-
 * `getData()` get data from database
 * `setData()` overwrite data at a certain location in the database
 * `addData()` generate a new key and add data as a child
 * `doesDataExist()` check if data exists at a certain location
 
-### Firebase uses Arrays
+### Why this is important
 
-Example of the behavior to prevent. An auto-generated firebase key doesn't match the array type, only uses dictionary-style string keys:
+Firebase sometimes stores data as Arrays, but an auto-generated firebase key won't check to match the array type:
 
 ![animation](https://raw.github.com/robbykraft/Firebase/master/readme/array-bad.gif)
 
@@ -68,6 +68,7 @@ Firebase comes with FireAuth with a "user" class, but you can't edit it. Solutio
 all the references to "user" are to our database's user entries, not the proper FIRAuth entry
 
 * `getCurrentUser()` get all your profile information
+* `getUser()` get a different user's info
 * `updateCurrentUserWith()` update your profile with new information
 * `newUser()` create a new entry for a user (usually for yourself after 1st login)
 * `userExists()` check if a user exists
@@ -77,5 +78,6 @@ all the references to "user" are to our database's user entries, not the proper 
 since Firebase Storage doesn't keep track of the files you upload,
 this maintains a record of the uploaded files in your database
 
-* `uploadFileAndMakeRecord()` upload a file to storage and make a record in our database
-
+* `fileCache:[String:Data]` the cache for all incoming files (images/pdfs) from the storage bucket
+* `imageFromStorageBucket()` get an image from Firebase storage (or the cache if it's already there)
+* `uploadFileAndMakeRecord()` upload a file to storage, make a record in our database, a
