@@ -56,7 +56,7 @@ extension UIImageView {
 	
 	// UID can be found under your firebase database /files/images/
 	public func imageFromFirebaseStorage(_ uid: String){
-		Fire.shared.loadData("/files/images/\(uid)") { (data) in
+		Fire.shared.getData("/files/images/\(uid)") { (data) in
 			if let imgMetaData = data as! [String:AnyObject]?{
 				if let urlString = imgMetaData["url"]{
 					if let url = URL(string: urlString as! String){
@@ -78,8 +78,8 @@ extension UIImageView {
 	}
 	
 	public func profileImageFromUserUID(_ uid: String){
-		if(Cache.shared.profileImage[uid] != nil){
-			self.image = Cache.shared.profileImage[uid]!
+		if(Storage.shared.profileImage[uid] != nil){
+			self.image = Storage.shared.profileImage[uid]!
 			return
 		}
 		Fire.shared.getUser { (userUID, userData) in
@@ -91,7 +91,7 @@ extension UIImageView {
 						let task = session.dataTask(with: request, completionHandler: {data, response, error -> Void in
 							DispatchQueue.main.async {
 								if let imageData = data as Data? {
-									Cache.shared.profileImage[uid] = UIImage(data: imageData)
+									Storage.shared.profileImage[uid] = UIImage(data: imageData)
 									self.image = UIImage(data: imageData)
 								}
 							}
@@ -123,9 +123,9 @@ extension UIImageView {
 	}
 	
 	public func imageFromStorageBucket(_ filename: String){
-		if(Cache.shared.storageBucket[filename] != nil){
+		if(Storage.shared.storageBucket[filename] != nil){
 			print("shortcut, we already have an image")
-			self.image = Cache.shared.storageBucket[filename]!
+			self.image = Storage.shared.storageBucket[filename]!
 			return
 		}
 
@@ -137,7 +137,7 @@ extension UIImageView {
 			if(data != nil){
 				if let imageData = data as Data? {
 					print("setting an image")
-					Cache.shared.storageBucket[filename] = UIImage(data: imageData)
+					Storage.shared.storageBucket[filename] = UIImage(data: imageData)
 					self.image = UIImage(data: imageData)
 				}
 			}

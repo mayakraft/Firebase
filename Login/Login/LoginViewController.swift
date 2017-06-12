@@ -31,7 +31,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 
 		emailField.placeholder = "Email Address"
 		passwordField.placeholder = "Password"
-
+				
 		let paddingEmail = UIView.init(frame: CGRect(x: 0, y: 0, width: 10, height: 20))
 		let paddingPassword = UIView.init(frame: CGRect(x: 0, y: 0, width: 10, height: 20))
 		emailField.leftView = paddingEmail
@@ -76,7 +76,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate {
 				FIRAuth.auth()?.createUser(withEmail: username, password: pass, completion: { (user, error) in
 					if(error == nil){
 						// Success, created account, logging in now
-						Fire.shared.createNewUser(user!, completionHandler: { (success) in
+						Fire.shared.newUser(user!, completionHandler: { (success) in
 							self.present(MasterNavigationController(), animated: true, completion: nil)
 						})
 					} else{

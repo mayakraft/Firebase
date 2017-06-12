@@ -3,11 +3,12 @@
 //  Copyright © 2016 Robby. All rights reserved.
 
 /////////////////////////////////////////////////////////////////////////
-// THREE PARTS: STORAGE, USER, DATABASE
+// THREE PARTS: DATABASE, USER, STORAGE
 
-// STORAGE:
-// since Firebase Storage doesn't keep track of the files you upload,
-// this maintains a record of the uploaded files in your database
+// DATABASE:
+// guards for setting and retrieving data
+// handling all types of JSON data: nil, bool, int, float, string, array, dictionary
+// Firebase uses Arrays which takes some extra safeguarding to manage
 
 // USER:
 // Firebase comes with FireAuth with a "user" class, but you can't edit it.
@@ -15,15 +16,18 @@
 //  - each user is stored under their user.uid
 //  - can add as many fields as you want (nickname, photo, etc..)
 
+// STORAGE:
+// since Firebase Storage doesn't keep track of the files you upload,
+// this maintains a record of the uploaded files in your database
 
 import Firebase
 
-let IMAGE_DIRECTORY:String = "images/"
-let DOCUMENT_DIRECTORY:String = "documents/"
+let STORAGE_IMAGE_DIR:String = "images/"
+let STORAGE_DOCUMENT_DIR:String = "documents/"
 
-enum FireError: Error {
-	case notLoggedIn
-	case error1(reason: String)
+enum JSONDataType {
+	case isBool, isInt, isFloat, isString, isArray, isDictionary, isURL, isNULL
+	// isURL is a special kind of string, kind of weird design i know, but it ends up being helpful
 }
 
 enum StorageFileType : String{
@@ -39,13 +43,13 @@ class Fire {
 	// can monitor, pause, resume the current upload task
 	var currentUpload:FIRStorageUploadTask?
 	
-	var myUID:String?
+	var myUID:String?  // if you are logged in, if not, == nil
 	
 	fileprivate init() {
 		// setup USER listener
 		FIRAuth.auth()?.addStateDidChangeListener { auth, listenerUser in
 			if let user = listenerUser {
-				print("AUTH LISTENER: user \(user.email!) signed in")
+				print("SIGN IN: \(user.email ?? user.uid)")
 				self.myUID = user.uid
 				self.userExists(user, completionHandler: { (exists) in
 					if(!exists){
@@ -54,17 +58,17 @@ class Fire {
 				})
 			} else {
 				self.myUID = nil
-				print("AUTH LISTENER: no user")
+				print("SIGN OUT: no user")
 			}
 		}
 		
 		let connectedRef = FIRDatabase.database().reference(withPath: ".info/connected")
 		connectedRef.observe(.value, with: { snapshot in
 			if let connected = snapshot.value as? Bool , connected {
-				// internet connected :)
+				// internet connected
 				// banner alert
 			} else {
-				// internet disconnected :(
+				// internet disconnected
 				// banner alert
 			}
 		})
@@ -88,25 +92,109 @@ class Fire {
 	}
 	
 	// add an object to the database at a childURL, function returns the auto-generated key to that object
-	func setData(_ object:Any, atPath:String, completionHandler: ((Error?, FIRDatabaseReference) -> ())?) {
-		self.database.child(atPath).childByAutoId().setValue(object) { (error, ref) in
-			if let completion = completionHandler{
-				completion(error, ref)
-			}
-		}
-	}
-
-
-	func dataExists(atPath:String, completionHandler: @escaping (Bool) -> ()) {
-		database.child(atPath).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
-			if snapshot.value != nil{
-				completionHandler(true)
+	func setData(_ object:Any, at path:String, completionHandler: ((Bool, FIRDatabaseReference) -> ())?) {
+		self.database.child(path).setValue(object) { (error, ref) in
+			if let e = error{
+				print(e.localizedDescription)
+				if let completion = completionHandler{
+					completion(false, ref)
+				}
 			} else{
-				completionHandler(false)
+				if let completion = completionHandler{
+					completion(true, ref)
+				}
+			}
+		}
+	}
+	
+	// add an object AS A CHILD to the path, returns the key to that object
+	//   ONLY if the object at path is a dictionary or array
+	//   if it is a leaf (String, Number, Bool) it doesn't do anything (prevents overwriting)
+	func addData(_ object:Any, asChildAt path:String, completionHandler: ((_ success:Bool, _ newKey:String?, FIRDatabaseReference?) -> ())?) {
+		self.doesDataExist(at: path) { (exists, dataType, data) in
+			switch dataType{
+			//  1) if array, it MAINTAINS the array structure (number key, not dictionary string key)
+			case .isArray:
+				let dbArray = data as! NSMutableArray
+				dbArray.add(object)
+				self.database.child(path).setValue(dbArray) { (error, ref) in
+					if let e = error{
+						print(e.localizedDescription)
+						if let completion = completionHandler{
+							completion(false, nil, nil)
+						}
+					} else{
+						if let completion = completionHandler{
+							completion(true, String(describing:dbArray.count-1), ref)
+						}
+					}
+				}
+			// 2) if dictionary, or doesn't exist, makes a new string key like usual
+			case .isDictionary, .isNULL:
+				self.database.child(path).childByAutoId().setValue(object) { (error, ref) in
+					if let e = error{
+						print(e.localizedDescription)
+						if let completion = completionHandler{
+							completion(false, nil, nil)
+						}
+					} else{
+						if let completion = completionHandler{
+							completion(true, ref.key, ref)
+						}
+					}
+				}
+			// 3) if object at path is a String or Int etc..(leaf node), return without doing anything
+			default:
+				if let completion = completionHandler{
+					completion(false, nil, nil);
+				}
 			}
 		}
 	}
 
+
+	func doesDataExist(at path:String, completionHandler: @escaping (_ doesExist:Bool, _ dataType:JSONDataType, _ data:Any?) -> ()) {
+		database.child(path).observeSingleEvent(of: .value) { (snapshot: FIRDataSnapshot) in
+			if let data = snapshot.value{
+				completionHandler(true, self.typeOf(FirebaseData: data), data)
+			} else{
+				completionHandler(false, .isNULL, nil)
+			}
+		}
+	}
+
+	
+	func typeOf(FirebaseData object:Any) -> JSONDataType {
+		if object is NSNumber{
+			let nsnum = object as! NSNumber
+			let boolID = CFBooleanGetTypeID() // the type ID of CFBoolean
+			let numID = CFGetTypeID(nsnum) // the type ID of num
+			if numID == boolID{
+				return .isBool
+			}
+			if nsnum.floatValue == Float(nsnum.intValue){
+				return .isInt
+			}
+			return .isFloat
+		} else if object is String {
+			if let url: URL = URL(string: object as! String) {
+				if UIApplication.shared.canOpenURL(url){
+					return .isURL
+				} else{
+					return .isString
+				}
+			} else{
+				return .isString
+			}
+		} else if object is NSArray || object is NSMutableArray{
+			return .isArray
+		} else if object is NSDictionary || object is NSMutableDictionary{
+			return .isDictionary
+		}
+		return .isNULL
+	}
+	
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -180,7 +268,6 @@ class Fire {
 		}
 	}
 	
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -196,26 +283,26 @@ class Fire {
 		switch fileType {
 		case .JPG:
 			filename = filename + ".jpg"
-			storagePath = IMAGE_DIRECTORY + filename
-			databaseDirectory = "files/" + IMAGE_DIRECTORY
+			storagePath = STORAGE_IMAGE_DIR + filename
+			databaseDirectory = "files/" + STORAGE_IMAGE_DIR
 			break
 		case .PNG:
 			filename = filename + ".png"
-			storagePath = IMAGE_DIRECTORY + filename
-			databaseDirectory = "files/" + IMAGE_DIRECTORY
+			storagePath = STORAGE_IMAGE_DIR + filename
+			databaseDirectory = "files/" + STORAGE_IMAGE_DIR
 			break
 		case .PDF:
 			filename = filename + ".pdf"
-			storagePath = DOCUMENT_DIRECTORY + filename
-			databaseDirectory = "files/" + DOCUMENT_DIRECTORY
+			storagePath = STORAGE_DOCUMENT_DIR + filename
+			databaseDirectory = "files/" + STORAGE_DOCUMENT_DIR
 			break
 		}
 		
 		// STEP 1 - upload file to storage
 		currentUpload = storage.child(storagePath).put(data, metadata: nil) { metadata, error in
 			// TODO: make currentUpload an array, if upload in progress add this to array
-			if (error != nil) {
-				print(error)
+			if let e = error {
+				print(e.localizedDescription)
 				completionHandler(nil)
 			} else {
 				// STEP 2 - record new file in database

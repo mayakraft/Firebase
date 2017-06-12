@@ -35,7 +35,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 		FIRApp.configure()
 		
 		_ = Fire.shared
-		_ = Cache.shared
+		_ = Storage.shared
 		
 		if (FIRAuth.auth()?.currentUser) != nil {
 			// User is signed in.

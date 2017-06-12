@@ -239,7 +239,7 @@ class ProfileViewController: UIViewController, UITextFieldDelegate, UIImagePicke
 				if(downloadURL != nil){
 					Fire.shared.updateUserWithKeyAndValue("image", value: downloadURL!.absoluteString, completionHandler: { (success) in
 						if(success){
-							Cache.shared.profileImage[Fire.shared.myUID!] = image
+							Storage.shared.profileImage[Fire.shared.myUID!] = image
 							self.profileImageView.image = image
 						}
 						else{
