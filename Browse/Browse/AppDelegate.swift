@@ -14,25 +14,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	
 	var window: UIWindow?
 	
-	func launchWithData(data:AnyObject){
+	func launchWithData(data:Any){
 		self.window = UIWindow()
 		self.window?.frame = UIScreen.main.bounds
-		let navigationController : UINavigationController = UINavigationController()
+		let navigationController = UINavigationController()
 		
-		// DATA is an Array or Dictionary
-		if(data is Array<AnyObject> || data is Dictionary<String,AnyObject>){
+		switch FireTiny.shared.typeOf(FirebaseData: data) {
+		case .isArray, .isDictionary:
 			let vc : TableViewController = TableViewController()
-			vc.data = data;
+			vc.data = data
 			vc.address = NSURL.init(string: "/") as URL?
 			navigationController.setViewControllers([vc], animated:false)
-		}
-		// DATA is a leaf: String, Int, or Float
-		if(data is String || data is Int || data is Float || data is Bool){
+		default:
+			// DATA is a leaf node
 			let vc : ObjectViewController = ObjectViewController()
-			vc.data = data as! String as AnyObject?;
+			vc.data = data
 			navigationController.setViewControllers([vc], animated:false)
 		}
-		
 		self.window?.rootViewController = navigationController
 		self.window?.makeKeyAndVisible()
 	}
@@ -54,14 +52,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 		// Override point for customization after application launch.
 		FirebaseApp.configure()
-		Fire.shared.loadData(childURL: nil) { (data) in
-			if(data != nil){
-				self.launchWithData(data: data!)
-			}
-			else{
+		
+		_ = FireTiny.shared
+		
+		FireTiny.shared.getData(nil) { (data) in
+			if let d = data{
+				self.launchWithData(data: d)
+			} else{
 				self.launchWithError(errorString: "problem connecting to the database")
 			}
 		}
+		
+		FireTiny.shared.database.observe(.childChanged, with: { (_) in
+			FireTiny.shared.getData(nil) { (data) in
+				if let d = data{
+					self.launchWithData(data: d)
+				} else{
+					self.launchWithError(errorString: "problem connecting to the database")
+				}
+			}
+		})
 		return true
 	}
 

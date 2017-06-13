@@ -16,48 +16,50 @@ class TableViewController: UITableViewController {
 	// if datasource is ARRAY
 	//    it populates with array (indexPath row numbers)
 	
-	var keyArray : Array<String>?  // only used if dataSource is a DICTIONARY
+	var keyArray : [String]?  // only used if dataSource is a DICTIONARY
 	
 	// the DATA SOURCE
-	var data: AnyObject? {
+	var data: Any? {
 		didSet{
-			if(self.data is [String:AnyObject]){
-				let d:[String:AnyObject] = self.data as! [String:AnyObject]
-				keyArray = Array(d.keys)
+			if let d = self.data as? [String:Any]{
+				self.keyArray = Array(d.keys)
+			}
+			if let d = self.data{
+				self.title = stringForType(FireTiny.shared.typeOf(FirebaseData: d))
 			}
 		}
 	}
 	
-	var address: URL?
+	var address: URL?  // database location, shows up as titleForHeader
 	
-	func showingArray() -> Bool {
-		return self.data is [AnyObject]
+	func dataIsArray() -> Bool {
+		return self.data is [Any]
 	}
-	func showingDictionary() -> Bool {
-		return self.data is [String:AnyObject]
+	func dataIsDictionary() -> Bool {
+		return self.data is [String:Any]
 	}
 	
 	override func numberOfSections(in tableView: UITableView) -> Int {
-		if(self.data != nil){
+		if self.data != nil{
 			return 1
 		}
 		return 0
 	}
 	override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		if(showingArray()){
-			return (self.data?.count)!
+		if let isArray = self.data as? [Any]{
+			return isArray.count
 		}
-		if(showingDictionary()){
-			if(self.keyArray != nil){
-				return self.keyArray!.count
+		if dataIsDictionary(){
+			if let keys = self.keyArray{
+				return keys.count
 			}
 		}
 		return 0
 	}
 	
 	override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-		if(address != nil){
-			return String(describing: address!)
+		if let url = self.address{
+			return url.absoluteString
 		}
 		return nil
 	}
@@ -66,68 +68,66 @@ class TableViewController: UITableViewController {
 		let cell = UITableViewCell.init(style: .value1, reuseIdentifier: "tableCell")
 		var text: String = ""
 		var detailText: String = ""
-		var nextObject: AnyObject?
+		var rowObject: Any?
 		
-		if(showingArray()){
+		if(dataIsArray()){
 			text = String(indexPath.row)
 			let dataArray = self.data! as! [AnyObject]
-			nextObject = dataArray[indexPath.row]
+			rowObject = dataArray[indexPath.row]
 		}
-		if(showingDictionary()){
-			text = String(self.keyArray![indexPath.row])
-			let dataDictionary = self.data! as! [String:AnyObject]
-			nextObject = dataDictionary[ self.keyArray![indexPath.row] ]
-		}
-		
-		if(nextObject is [String:AnyObject]){
-			detailText = "Dictionary"
-		}
-		if(nextObject is [AnyObject]){
-			detailText = "Array"
-		}
-		if(nextObject is String || nextObject is Int || nextObject is Float || nextObject is Bool){
-			detailText = String(describing: nextObject!)
+		if let isDictionary = self.data as? [String:Any]{
+			if let keys = keyArray{
+				text = String(keys[indexPath.row])
+				rowObject = isDictionary[ keys[indexPath.row] ]
+			}
 		}
 		
+		if let object = rowObject{
+			let type = FireTiny.shared.typeOf(FirebaseData: object)
+			switch type{
+			case .isArray, .isDictionary:
+				detailText = stringForType(type)
+			default:
+				detailText = String(describing: object)
+			}
+		}
 		cell.textLabel?.text = text
 		cell.detailTextLabel?.text = detailText
-		
 		return cell
 	}
 	
 	override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-		var nextObject:AnyObject?
-		var nextTitle:String = ""
+		var object:Any?
+		var objectAddress:String = ""
 		
 		// depending on DICTIONARY or ARRAY, let's grab the next object to show
-		if(showingArray()){
-			let dataArray = self.data! as! [AnyObject]
-			nextObject = dataArray[indexPath.row]
-			nextTitle = String(indexPath.row)
+		if let isArray = self.data as? [Any]{
+			object = isArray[indexPath.row]
+			objectAddress = String(indexPath.row)
 		}
-		if(showingDictionary()){
-			let key: String = keyArray![indexPath.row]
-			let dataDictionary = self.data! as! [String:AnyObject]
-			nextObject = dataDictionary[ key ]
-			nextTitle = String(self.keyArray![indexPath.row])
+		if let isDictionary = self.data as? [String:Any]{
+			if let keys = keyArray{
+				let key: String = keys[indexPath.row]
+				object = isDictionary[ key ]
+				objectAddress = key
+			}
 		}
 		
-		// if this element is the leaf (last level down)
-		if(nextObject is String || nextObject is Int || nextObject is Float || nextObject is Bool){
-			let vc: ObjectViewController = ObjectViewController()
-			vc.data = nextObject
-//			vc.title = nextTitle
-			self.navigationController?.pushViewController(vc, animated: true)
-		}
-			// if there are more levels below
-		else{
-			let vc: TableViewController = TableViewController()
-			vc.data = nextObject
-			vc.title = nextTitle
-			vc.address = self.address?.appendingPathComponent(nextTitle)
-			self.navigationController?.pushViewController(vc, animated: true)
+		if let obj = object{
+			let nextType = FireTiny.shared.typeOf(FirebaseData: obj)
+			switch nextType{
+			case .isArray, .isDictionary:
+				let vc: TableViewController = TableViewController()
+				vc.data = obj
+				vc.address = self.address?.appendingPathComponent(objectAddress)
+				self.navigationController?.pushViewController(vc, animated: true)
+			default:
+				// leaf (last level down)
+				let vc: ObjectViewController = ObjectViewController()
+				vc.data = obj
+				self.navigationController?.pushViewController(vc, animated: true)
+			}
 		}
 	}
-	
 }
 

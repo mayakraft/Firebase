@@ -11,7 +11,7 @@
 		D523C2E91DA5759000490E71 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C2E81DA5759000490E71 /* AppDelegate.swift */; };
 		D523C2F01DA5759000490E71 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D523C2EF1DA5759000490E71 /* Assets.xcassets */; };
 		D523C2F31DA5759000490E71 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D523C2F11DA5759000490E71 /* LaunchScreen.storyboard */; };
-		D523C2FB1DA575CB00490E71 /* Fire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C2FA1DA575CB00490E71 /* Fire.swift */; };
+		D523C2FB1DA575CB00490E71 /* FireTiny.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C2FA1DA575CB00490E71 /* FireTiny.swift */; };
 		D523C2FD1DA575D400490E71 /* TableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C2FC1DA575D400490E71 /* TableViewController.swift */; };
 		D523C2FF1DA575DD00490E71 /* ObjectViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D523C2FE1DA575DD00490E71 /* ObjectViewController.swift */; };
 		D523C3011DA5763300490E71 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = D523C3001DA5763300490E71 /* GoogleService-Info.plist */; };
@@ -25,7 +25,7 @@
 		D523C2EF1DA5759000490E71 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D523C2F21DA5759000490E71 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D523C2F41DA5759000490E71 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D523C2FA1DA575CB00490E71 /* Fire.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fire.swift; sourceTree = "<group>"; };
+		D523C2FA1DA575CB00490E71 /* FireTiny.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FireTiny.swift; sourceTree = "<group>"; };
 		D523C2FC1DA575D400490E71 /* TableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewController.swift; sourceTree = "<group>"; };
 		D523C2FE1DA575DD00490E71 /* ObjectViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectViewController.swift; sourceTree = "<group>"; };
 		D523C3001DA5763300490E71 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -82,7 +82,7 @@
 		D523C2E71DA5759000490E71 /* Browse */ = {
 			isa = PBXGroup;
 			children = (
-				D523C2FA1DA575CB00490E71 /* Fire.swift */,
+				D523C2FA1DA575CB00490E71 /* FireTiny.swift */,
 				D523C2E81DA5759000490E71 /* AppDelegate.swift */,
 				D523C2FE1DA575DD00490E71 /* ObjectViewController.swift */,
 				D523C2FC1DA575D400490E71 /* TableViewController.swift */,
@@ -218,7 +218,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D523C2FF1DA575DD00490E71 /* ObjectViewController.swift in Sources */,
-				D523C2FB1DA575CB00490E71 /* Fire.swift in Sources */,
+				D523C2FB1DA575CB00490E71 /* FireTiny.swift in Sources */,
 				D523C2E91DA5759000490E71 /* AppDelegate.swift in Sources */,
 				D523C2FD1DA575D400490E71 /* TableViewController.swift in Sources */,
 			);
